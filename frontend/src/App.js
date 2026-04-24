@@ -60,7 +60,82 @@ function AppShell() {
   }, [user]);
 
   if (user === undefined) return <div className="loading">Loading...</div>;
-  if (!user) return <Login />;
+
+  if (!user) return (
+    <div className="app-layout">
+      {/* Blurred sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-bg-shapes">
+          {[...Array(6)].map((_, i) => <div key={i} className={`sb-shape sb-shape-${i + 1}`} />)}
+        </div>
+        <div className="sidebar-brand">
+          <span className="brand-icon">📦</span>
+          <span className="brand-text">Inventory</span>
+        </div>
+        <nav className="sidebar-nav">
+          {navGroups.map((group) => (
+            <div key={group.label} className="nav-group">
+              <span className="nav-group-label">{group.label}</span>
+              {group.links.map((n) => (
+                <span key={n.to} className="sidebar-link">{n.label}</span>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-user">
+          <div className="sidebar-user-info">
+            <span className="user-name">Guest User</span>
+            <span className="user-email">Sign in to continue</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* Blurred main content */}
+      <main className="main-content" style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none" }}>
+        <div className="main-bg-shapes">
+          {[...Array(8)].map((_, i) => <div key={i} className={`main-shape main-shape-${i + 1}`} />)}
+        </div>
+        <div className="main-inner">
+          <div className="page">
+            <h2>🏪 Stores</h2>
+            <div className="form-block">
+              <div className="form-row">
+                <input placeholder="Store name" readOnly />
+                <button disabled>Add Store</button>
+              </div>
+            </div>
+            <table>
+              <thead><tr><th>Name</th><th>Action</th></tr></thead>
+              <tbody>
+                {["Main Warehouse", "Retail Store A", "Outlet B"].map((name) => (
+                  <tr key={name}>
+                    <td>{name}</td>
+                    <td><div className="form-row"><button disabled>Edit</button><button disabled>Delete</button></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      {/* Login modal overlay */}
+      <div className="login-modal-overlay">
+        <div className="login-modal-card">
+          <div className="login-logo">📦</div>
+          <h1>Inventory Manager</h1>
+          <p>Sign in to manage your inventory, production and stores.</p>
+          {new URLSearchParams(window.location.search).get("error") && (
+            <p className="error">Authentication failed. Please try again.</p>
+          )}
+          <a href="http://localhost:3001/auth/google" className="google-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={20} />
+            Sign in with Google
+          </a>
+        </div>
+      </div>
+    </div>
+  );
 
   const needsSubscription = user.trialExpired && !user.subscriptionActive;
 
