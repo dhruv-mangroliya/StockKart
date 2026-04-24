@@ -10,7 +10,6 @@ import Transfers from "./pages/Transfers";
 import Returns from "./pages/Returns";
 import ProducerReturn from "./pages/ProducerReturn";
 import ProductionOrders from "./pages/ProductionOrders";
-import Login from "./pages/Login";
 import Onboarding from "./components/Onboarding";
 import TodoPanel from "./components/TodoPanel";
 import SubscriptionModal from "./components/SubscriptionModal";
@@ -67,10 +66,6 @@ function AppShell() {
       <aside className="sidebar">
         <div className="sidebar-bg-shapes">
           {[...Array(6)].map((_, i) => <div key={i} className={`sb-shape sb-shape-${i + 1}`} />)}
-        </div>
-        <div className="sidebar-brand">
-          <span className="brand-icon">📦</span>
-          <span className="brand-text">Inventory</span>
         </div>
         <nav className="sidebar-nav">
           {navGroups.map((group) => (
@@ -146,7 +141,11 @@ function AppShell() {
         <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
           <span /><span /><span />
         </button>
-        <span className="mobile-brand">📦 Inventory</span>
+        <img src="/mainLogo.png" alt="InventoryBook" className="mobile-logo" />
+        <div className="mobile-brand-text">
+          <div style={{ display: "flex" }}><span className="brand-inventory">Inventory</span><span className="brand-book">Book</span></div>
+          <span className="brand-tagline">Track.Manage.Grow</span>
+        </div>
         {user.avatar && <img src={user.avatar} alt={user.name} className="avatar" referrerPolicy="no-referrer" />}
       </div>
 
@@ -156,10 +155,6 @@ function AppShell() {
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-bg-shapes">
           {[...Array(6)].map((_, i) => <div key={i} className={`sb-shape sb-shape-${i + 1}`} />)}
-        </div>
-        <div className="sidebar-brand">
-          <span className="brand-icon">📦</span>
-          <span className="brand-text">Inventory</span>
         </div>
         <nav className="sidebar-nav">
           {navGroups.map((group) => (
@@ -188,18 +183,26 @@ function AppShell() {
             <NavLink to="/refund-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>💰 Refund Policy</NavLink>
           </div>
         </nav>
-        <div className="sidebar-user">
-          {user.avatar && <img src={user.avatar} alt={user.name} className="avatar" referrerPolicy="no-referrer" />}
-          <div className="sidebar-user-info">
-            <span className="user-name">{user.name}</span>
-            <span className="user-email">{user.email}</span>
-          </div>
-          <button className="logout-btn" onClick={logout} title="Logout">Logout</button>
-        </div>
+
       </aside>
       <main className="main-content">
         {needsSubscription && <SubscriptionModal user={user} onSuccess={refreshUser} />}
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
+        <header className="main-header">
+          <img src="/mainLogo.png" alt="InventoryBook" className="header-logo" />
+          <div className="header-brand">
+            <div className="brand-name"><span className="brand-inventory">Inventory</span><span className="brand-book">Book</span></div>
+            <span className="brand-tagline">Track.Manage.Grow</span>
+          </div>
+          <div className="header-right">
+            <div className="header-user-info">
+              <span className="header-user-name">{user.name}</span>
+              <span className="header-user-email">{user.email}</span>
+            </div>
+            {user.avatar && <img src={user.avatar} alt={user.name} className="avatar" referrerPolicy="no-referrer" />}
+            <button className="logout-btn" onClick={logout}>Logout</button>
+          </div>
+        </header>
         <div className="main-bg-shapes">
           {[...Array(8)].map((_, i) => <div key={i} className={`main-shape main-shape-${i + 1}`} />)}
         </div>
