@@ -3,11 +3,19 @@ import { api } from "../api";
 
 export default function Inventory() {
   const [inventory, setInventory] = useState([]);
+  const [globalStock, setGlobalStock] = useState([]);
   const [stores, setStores] = useState([]);
   const [producers, setProducers] = useState([]);
   const [rawMaterials, setRawMaterials] = useState([]);
   const [products, setProducts] = useState([]);
-  const [filter, setFilter] = useState({ locationType: "", locationId: "" });
+  const [tempFilterItemId, setTempFilterItemId] = useState("");
+  const [tempFilterItemType, setTempFilterItemType] = useState("");
+  const [filterItemId, setFilterItemId] = useState("");
+  const [filterItemType, setFilterItemType] = useState("");
+  const [sortColumn, setSortColumn] = useState("itemId");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [gSortColumn, setGSortColumn] = useState("itemId");
+  const [gSortOrder, setGSortOrder] = useState("asc");
   const [form, setForm] = useState({ itemType: "RAW", itemId: "", locationType: "STORE", locationId: "", quantity: "" });
   const [editing, setEditing] = useState(null);
   const [editQty, setEditQty] = useState("");
@@ -22,13 +30,102 @@ export default function Inventory() {
 
   const loadInventory = () => {
     const params = new URLSearchParams();
-    if (filter.locationType) params.set("locationType", filter.locationType);
-    if (filter.locationId) params.set("locationId", filter.locationId);
+    if (filterItemType) params.set("itemType", filterItemType);
+    if (filterItemId) params.set("itemId", filterItemId);
     api.get(`/inventory?${params}`).then(setInventory);
+    api.get("/inventory/global-stock").then(setGlobalStock);
+  };
+
+  const handleSearch = () => {
+    setFilterItemType(tempFilterItemType);
+    setFilterItemId(tempFilterItemId);
+  };
+
+  const handleClear = () => {
+    setTempFilterItemType("");
+    setTempFilterItemId("");
+    setFilterItemType("");
+    setFilterItemId("");
+  };
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      // Toggle sort order if same column is clicked
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      // Set new column and reset to ascending
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+  };
+
+  const getSortedInventory = () => {
+    const sorted = [...inventory].sort((a, b) => {
+      let aVal, bVal;
+      
+      switch (sortColumn) {
+        case "itemId":
+          aVal = getItemLabel(a.itemType, a.itemId);
+          bVal = getItemLabel(b.itemType, b.itemId);
+          break;
+        case "itemType":
+          aVal = a.itemType;
+          bVal = b.itemType;
+          break;
+        case "locationId":
+          aVal = getLocationLabel(a.locationType, a.locationId);
+          bVal = getLocationLabel(b.locationType, b.locationId);
+          break;
+        case "locationType":
+          aVal = a.locationType;
+          bVal = b.locationType;
+          break;
+        case "quantity":
+          aVal = a.quantity;
+          bVal = b.quantity;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    
+    return sorted;
+  };
+
+  const getSortIndicator = (column) => {
+    if (sortColumn !== column) return " ↕";
+    return sortOrder === "asc" ? " ↑" : " ↓";
+  };
+
+  const handleGSort = (column) => {
+    if (gSortColumn === column) {
+      setGSortOrder(gSortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setGSortColumn(column);
+      setGSortOrder("asc");
+    }
+  };
+
+  const getSortedGlobalStock = () =>
+    [...globalStock].sort((a, b) => {
+      const aVal = gSortColumn === "totalQuantity" ? a.totalQuantity : gSortColumn === "itemType" ? a.itemType : getItemLabel(a.itemType, a.itemId);
+      const bVal = gSortColumn === "totalQuantity" ? b.totalQuantity : gSortColumn === "itemType" ? b.itemType : getItemLabel(b.itemType, b.itemId);
+      if (aVal < bVal) return gSortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return gSortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const getGSortIndicator = (column) => {
+    if (gSortColumn !== column) return " ↕";
+    return gSortOrder === "asc" ? " ↑" : " ↓";
   };
 
   useEffect(() => { loadAll(); }, []);
-  useEffect(() => { loadInventory(); }, [filter]);
+  useEffect(() => { loadInventory(); }, [filterItemType, filterItemId]);
 
   const getItemLabel = (type, id) => {
     if (type === "RAW") {
@@ -46,6 +143,19 @@ export default function Inventory() {
     }
     const p = producers.find((x) => x.id === id);
     return p ? p.name : id;
+  };
+
+  const getAllItems = () => {
+    const allItems = [];
+    // Add all raw materials
+    rawMaterials.forEach((r) => {
+      allItems.push({ type: "RAW", id: r.id, label: `${r.name} (${r.color})` });
+    });
+    // Add all products
+    products.forEach((p) => {
+      allItems.push({ type: "PRODUCT", id: p.id, label: p.name });
+    });
+    return allItems;
   };
 
   const itemOptions = form.itemType === "RAW"
@@ -112,34 +222,43 @@ export default function Inventory() {
       </div>
 
       <div className="form-block">
-        <h3>Filter Inventory</h3>
+        <h3>Filter by Item</h3>
         <div className="form-row">
-          <select value={filter.locationType} onChange={(e) => setFilter({ locationType: e.target.value, locationId: "" })}>
-            <option value="">All Locations</option>
-            <option value="STORE">Stores</option>
-            <option value="PRODUCER">Producers</option>
+          <select value={tempFilterItemId ? `${tempFilterItemType}:${tempFilterItemId}` : ""} onChange={(e) => {
+            if (e.target.value) {
+              const [type, id] = e.target.value.split(":");
+              setTempFilterItemType(type);
+              setTempFilterItemId(id);
+            } else {
+              setTempFilterItemType("");
+              setTempFilterItemId("");
+            }
+          }}>
+            <option value="">All Items</option>
+            {getAllItems().map((item) => (
+              <option key={`${item.type}:${item.id}`} value={`${item.type}:${item.id}`}>
+                {item.label}
+              </option>
+            ))}
           </select>
-          {filter.locationType === "STORE" && (
-            <select value={filter.locationId} onChange={(e) => setFilter({ ...filter, locationId: e.target.value })}>
-              <option value="">All Stores</option>
-              {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          )}
-          {filter.locationType === "PRODUCER" && (
-            <select value={filter.locationId} onChange={(e) => setFilter({ ...filter, locationId: e.target.value })}>
-              <option value="">All Producers</option>
-              {producers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          )}
+          <button type="button" onClick={handleSearch}>Search</button>
+          <button type="button" onClick={handleClear}>Clear</button>
         </div>
       </div>
 
       <table>
         <thead>
-          <tr><th>Item</th><th>Type</th><th>Location</th><th>Location Type</th><th>Quantity</th><th>Action</th></tr>
+          <tr>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("itemId")}>Item{getSortIndicator("itemId")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("itemType")}>Type{getSortIndicator("itemType")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("locationId")}>Location{getSortIndicator("locationId")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("locationType")}>Location Type{getSortIndicator("locationType")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("quantity")}>Quantity{getSortIndicator("quantity")}</th>
+            <th>Action</th>
+          </tr>
         </thead>
         <tbody>
-          {inventory.map((inv) => (
+          {getSortedInventory().map((inv) => (
             <tr key={inv.id}>
               <td>{getItemLabel(inv.itemType, inv.itemId)}</td>
               <td>{inv.itemType}</td>
@@ -163,6 +282,27 @@ export default function Inventory() {
             </tr>
           ))}
           {inventory.length === 0 && <tr><td colSpan="6" style={{ textAlign: "center" }}>No inventory found</td></tr>}
+        </tbody>
+      </table>
+
+      <h3>Global Stock</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style={{ cursor: "pointer" }} onClick={() => handleGSort("itemId")}>Item{getGSortIndicator("itemId")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleGSort("itemType")}>Type{getGSortIndicator("itemType")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleGSort("totalQuantity")}>Total Quantity{getGSortIndicator("totalQuantity")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {getSortedGlobalStock().map((g) => (
+            <tr key={`${g.itemType}:${g.itemId}`}>
+              <td>{getItemLabel(g.itemType, g.itemId)}</td>
+              <td>{g.itemType}</td>
+              <td>{g.totalQuantity}</td>
+            </tr>
+          ))}
+          {globalStock.length === 0 && <tr><td colSpan="3" style={{ textAlign: "center" }}>No stock found</td></tr>}
         </tbody>
       </table>
     </div>

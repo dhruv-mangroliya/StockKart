@@ -111,50 +111,103 @@ export default function ProductionOrders() {
       </div>
 
       <h3>All Orders</h3>
-      <table>
-        <thead>
-          <tr><th>#</th><th>Product</th><th>Producer</th><th>Materials Sent</th><th>Required Qty</th><th>Output Qty</th><th>Destination Store</th><th>Status</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={o.id}>
-              <td>{orders.indexOf(o) + 1}</td>
-              <td>{getLabel(products, o.productId)}</td>
-              <td>{getLabel(producers, o.producerId)}</td>
-              <td>
-                {o.inputMaterials.map((m, i) => (
-                  <span key={i}>{getRmLabel(m.rawMaterialId)} × {m.quantitySent} <em style={{ color: "#888" }}>from {getLabel(stores, m.sourceStoreId)}</em>{i < o.inputMaterials.length - 1 ? ", " : ""}</span>
-                ))}
-              </td>
-              <td>{o.requiredQuantity}</td>
-              <td>{o.outputQuantity || "-"}</td>
-              <td>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</td>
-              <td><span className={`badge ${o.status === "COMPLETED" ? "badge-green" : "badge-yellow"}`}>{o.status}</span></td>
-              <td>
-                {o.status === "CREATED" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div className="form-row">
-                      <select value={destStore[o.id] || ""} onChange={(e) => setDestStore({ ...destStore, [o.id]: e.target.value })}>
-                        <option value="">To Store</option>
-                        {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
-                      <button onClick={() => complete(o.id)}>Complete</button>
-                    </div>
-                    <div className="form-row">
-                      <select value={returnStore[o.id] || ""} onChange={(e) => setReturnStore({ ...returnStore, [o.id]: e.target.value })}>
-                        <option value="">Return to Store</option>
-                        {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
-                      <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
-                    </div>
+      {/* Desktop table */}
+      <div className="orders-table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Product</th><th>Producer</th><th>Materials Sent</th><th>Required Qty</th><th>Output Qty</th><th>Destination Store</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            {orders.map((o, idx) => (
+              <tr key={o.id}>
+                <td>{idx + 1}</td>
+                <td>{getLabel(products, o.productId)}</td>
+                <td>{getLabel(producers, o.producerId)}</td>
+                <td>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {o.inputMaterials.map((m, i) => (
+                      <div key={i} style={{ fontSize: "0.85rem", lineHeight: "1.4" }}>
+                        <div style={{ fontWeight: "500", color: "#111827" }}>{getRmLabel(m.rawMaterialId)} <span style={{ color: "#0891b2", fontWeight: "600" }}>× {m.quantitySent}</span></div>
+                        <div style={{ color: "#6b7280", fontSize: "0.8rem" }}>from {getLabel(stores, m.sourceStoreId)}</div>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </td>
-            </tr>
-          ))}
-          {orders.length === 0 && <tr><td colSpan="9" style={{ textAlign: "center" }}>No orders yet</td></tr>}
-        </tbody>
-      </table>
+                </td>
+                <td>{o.requiredQuantity}</td>
+                <td>{o.outputQuantity || "-"}</td>
+                <td>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</td>
+                <td><span className={`badge ${o.status === "COMPLETED" ? "badge-green" : "badge-yellow"}`}>{o.status}</span></td>
+                <td>
+                  {o.status === "CREATED" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div className="form-row">
+                        <select value={destStore[o.id] || ""} onChange={(e) => setDestStore({ ...destStore, [o.id]: e.target.value })}>
+                          <option value="">To Store</option>
+                          {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                        <button onClick={() => complete(o.id)}>Complete</button>
+                      </div>
+                      <div className="form-row">
+                        <select value={returnStore[o.id] || ""} onChange={(e) => setReturnStore({ ...returnStore, [o.id]: e.target.value })}>
+                          <option value="">Return to Store</option>
+                          {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                        <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
+                      </div>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {orders.length === 0 && <tr><td colSpan="9" style={{ textAlign: "center" }}>No orders yet</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="orders-cards">
+        {orders.length === 0 && <p style={{ color: "#888", textAlign: "center", padding: "24px 0" }}>No orders yet</p>}
+        {orders.map((o, idx) => (
+          <div key={o.id} className="order-card">
+            <div className="order-card-header">
+              <span className="order-card-num">#{idx + 1}</span>
+              <span className={`badge ${o.status === "COMPLETED" ? "badge-green" : "badge-yellow"}`}>{o.status}</span>
+            </div>
+            <div className="order-card-row"><span>Product</span><strong>{getLabel(products, o.productId)}</strong></div>
+            <div className="order-card-row"><span>Producer</span><strong>{getLabel(producers, o.producerId)}</strong></div>
+            <div className="order-card-row"><span>Required Qty</span><strong>{o.requiredQuantity}</strong></div>
+            <div className="order-card-row"><span>Output Qty</span><strong>{o.outputQuantity || "-"}</strong></div>
+            <div className="order-card-row"><span>Destination</span><strong>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</strong></div>
+            <div className="order-card-materials">
+              <span className="order-card-mat-label">Materials Sent</span>
+              {o.inputMaterials.map((m, i) => (
+                <div key={i} className="order-card-mat-item">
+                  <span>{getRmLabel(m.rawMaterialId)} × {m.quantitySent}</span>
+                  <span className="order-card-mat-store">from {getLabel(stores, m.sourceStoreId)}</span>
+                </div>
+              ))}
+            </div>
+            {o.status === "CREATED" && (
+              <div className="order-card-actions">
+                <div className="form-row">
+                  <select value={destStore[o.id] || ""} onChange={(e) => setDestStore({ ...destStore, [o.id]: e.target.value })}>
+                    <option value="">To Store</option>
+                    {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                  <button onClick={() => complete(o.id)}>Complete</button>
+                </div>
+                <div className="form-row">
+                  <select value={returnStore[o.id] || ""} onChange={(e) => setReturnStore({ ...returnStore, [o.id]: e.target.value })}>
+                    <option value="">Return to Store</option>
+                    {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                  <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

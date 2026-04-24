@@ -68,10 +68,10 @@ export default function Returns() {
       <h2>Ecom Orders</h2>
 
       <div className="tab-bar">
-        <button className={!isDispatch ? "tab active" : "tab"} onClick={() => { setTab("return"); setForm(EMPTY_FORM); setError(""); }}>
+        <button type="button" className={!isDispatch ? "tab active" : "tab"} onClick={() => { setTab("return"); setForm(EMPTY_FORM); setError(""); }}>
           📦 Returns (Add Stock)
         </button>
-        <button className={isDispatch ? "tab active" : "tab"} onClick={() => { setTab("dispatch"); setForm(EMPTY_FORM); setError(""); }}>
+        <button type="button" className={isDispatch ? "tab active" : "tab"} onClick={() => { setTab("dispatch"); setForm(EMPTY_FORM); setError(""); }}>
           🚚 Dispatch (Reduce Stock)
         </button>
       </div>
@@ -90,7 +90,7 @@ export default function Returns() {
             </select>
           </div>
           <div className="form-row">
-            <select value={form.storeId} onChange={(e) => setForm({ ...form, storeId: e.target.value, productId: "", quantity: "" })} required>
+            <select value={form.storeId} onChange={(e) => setForm({ ...form, storeId: e.target.value, quantity: "" })} required>
               <option value="">{isDispatch ? "Dispatch from Store" : "Add to Store"}</option>
               {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
