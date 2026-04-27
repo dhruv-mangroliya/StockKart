@@ -1824,3 +1824,18 @@ tbody tr {
   border-color: #a5b4fc;
   color: #3730a3;
 }
+
+/* GST info on plan cards */
+.sub-plan-gst, .plan-gst {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.sub-plan-total, .plan-total {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  background: rgba(99,102,241,0.08);
+  padding: 3px 10px;
+  border-radius: 20px;
+}

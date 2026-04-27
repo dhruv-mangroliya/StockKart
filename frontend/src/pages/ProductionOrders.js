@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
 
-const EMPTY_FORM = { productId: "", producerId: "", requiredQuantity: 1, inputMaterials: [{ rawMaterialId: "", sourceStoreId: "", quantitySent: 1 }] };
+const EMPTY_FORM = { productId: "", producerId: "", requiredQuantity: 1 };
 
 export default function ProductionOrders() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [producers, setProducers] = useState([]);
   const [stores, setStores] = useState([]);
-  const [rawMaterials, setRawMaterials] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [destStore, setDestStore] = useState({});
-  const [returnStore, setReturnStore] = useState({});
   const [error, setError] = useState("");
 
   const loadAll = () => {
@@ -19,22 +17,15 @@ export default function ProductionOrders() {
     api.get("/products").then(setProducts);
     api.get("/producers").then(setProducers);
     api.get("/stores").then(setStores);
-    api.get("/raw-materials").then(setRawMaterials);
   };
   useEffect(() => { loadAll(); }, []);
-
-  const updateMat = (i, field, val) => {
-    const mats = [...form.inputMaterials];
-    mats[i] = { ...mats[i], [field]: field === "quantitySent" ? Number(val) : val };
-    setForm({ ...form, inputMaterials: mats });
-  };
 
   const submit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       await api.post("/production-orders", form);
-      setForm(EMPTY_FORM);
+      setForm((f) => ({ ...f, requiredQuantity: 1 }));
       loadAll();
     } catch (err) { setError(err.message); }
   };
@@ -52,20 +43,14 @@ export default function ProductionOrders() {
 
   const cancelOrder = async (orderId) => {
     setError("");
-    const storeId = returnStore[orderId];
-    if (!storeId) return setError("Select a return store to cancel the order");
-    if (!window.confirm("Cancel this order and return materials to selected store?")) return;
+    if (!window.confirm("Cancel this production order?")) return;
     try {
-      await api.delete(`/production-orders/${orderId}`, { returnStoreId: storeId });
-      setReturnStore({ ...returnStore, [orderId]: "" });
+      await api.delete(`/production-orders/${orderId}`);
       loadAll();
     } catch (err) { setError(err.message); }
   };
+
   const getLabel = (arr, id) => arr.find((x) => x.id === id)?.name || id;
-  const getRmLabel = (id) => {
-    const r = rawMaterials.find((x) => x.id === id);
-    return r ? `${r.name} (${r.color})` : id;
-  };
 
   return (
     <div className="page">
@@ -83,27 +68,7 @@ export default function ProductionOrders() {
               <option value="">Select Producer</option>
               {producers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <input type="number" min="1" value={form.requiredQuantity} onChange={(e) => setForm({ ...form, requiredQuantity: Number(e.target.value) })} placeholder="Required output qty" required />
-          </div>
-          <p><strong>Input Materials to Send</strong></p>
-          {form.inputMaterials.map((m, i) => (
-            <div key={i} className="form-row">
-              <select value={m.rawMaterialId} onChange={(e) => updateMat(i, "rawMaterialId", e.target.value)} required>
-                <option value="">Select Material</option>
-                {rawMaterials.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.color})</option>)}
-              </select>
-              <select value={m.sourceStoreId} onChange={(e) => updateMat(i, "sourceStoreId", e.target.value)} required>
-                <option value="">From Store</option>
-                {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-              <input type="number" min="1" value={m.quantitySent} onChange={(e) => updateMat(i, "quantitySent", e.target.value)} placeholder="Qty to send" required />
-              {form.inputMaterials.length > 1 && (
-                <button type="button" onClick={() => setForm({ ...form, inputMaterials: form.inputMaterials.filter((_, j) => j !== i) })}>✕</button>
-              )}
-            </div>
-          ))}
-          <div className="form-row">
-            <button type="button" onClick={() => setForm({ ...form, inputMaterials: [...form.inputMaterials, { rawMaterialId: "", sourceStoreId: "", quantitySent: 1 }] })}>+ Add Material</button>
+            <input type="number" min="0.001" step="any" value={form.requiredQuantity} onChange={(e) => setForm({ ...form, requiredQuantity: Number(e.target.value) })} placeholder="Required output qty" required />
             <button type="submit">Create Order</button>
           </div>
         </form>
@@ -111,11 +76,10 @@ export default function ProductionOrders() {
       </div>
 
       <h3>All Orders</h3>
-      {/* Desktop table */}
       <div className="orders-table-wrap">
         <table>
           <thead>
-            <tr><th>#</th><th>Product</th><th>Producer</th><th>Materials Sent</th><th>Required Qty</th><th>Output Qty</th><th>Destination Store</th><th>Status</th><th>Action</th></tr>
+            <tr><th>#</th><th>Product</th><th>Producer</th><th>Required Qty</th><th>Output Qty</th><th>Destination Store</th><th>Status</th><th>Action</th></tr>
           </thead>
           <tbody>
             {orders.map((o, idx) => (
@@ -123,16 +87,6 @@ export default function ProductionOrders() {
                 <td>{idx + 1}</td>
                 <td>{getLabel(products, o.productId)}</td>
                 <td>{getLabel(producers, o.producerId)}</td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {o.inputMaterials.map((m, i) => (
-                      <div key={i} style={{ fontSize: "0.85rem", lineHeight: "1.4" }}>
-                        <div style={{ fontWeight: "500", color: "#111827" }}>{getRmLabel(m.rawMaterialId)} <span style={{ color: "#0891b2", fontWeight: "600" }}>× {m.quantitySent}</span></div>
-                        <div style={{ color: "#6b7280", fontSize: "0.8rem" }}>from {getLabel(stores, m.sourceStoreId)}</div>
-                      </div>
-                    ))}
-                  </div>
-                </td>
                 <td>{o.requiredQuantity}</td>
                 <td>{o.outputQuantity || "-"}</td>
                 <td>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</td>
@@ -147,24 +101,17 @@ export default function ProductionOrders() {
                         </select>
                         <button onClick={() => complete(o.id)}>Complete</button>
                       </div>
-                      <div className="form-row">
-                        <select value={returnStore[o.id] || ""} onChange={(e) => setReturnStore({ ...returnStore, [o.id]: e.target.value })}>
-                          <option value="">Return to Store</option>
-                          {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
-                        <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
-                      </div>
+                      <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
                     </div>
                   )}
                 </td>
               </tr>
             ))}
-            {orders.length === 0 && <tr><td colSpan="9" style={{ textAlign: "center" }}>No orders yet</td></tr>}
+            {orders.length === 0 && <tr><td colSpan="8" style={{ textAlign: "center" }}>No orders yet</td></tr>}
           </tbody>
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="orders-cards">
         {orders.length === 0 && <p style={{ color: "#888", textAlign: "center", padding: "24px 0" }}>No orders yet</p>}
         {orders.map((o, idx) => (
@@ -178,15 +125,6 @@ export default function ProductionOrders() {
             <div className="order-card-row"><span>Required Qty</span><strong>{o.requiredQuantity}</strong></div>
             <div className="order-card-row"><span>Output Qty</span><strong>{o.outputQuantity || "-"}</strong></div>
             <div className="order-card-row"><span>Destination</span><strong>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</strong></div>
-            <div className="order-card-materials">
-              <span className="order-card-mat-label">Materials Sent</span>
-              {o.inputMaterials.map((m, i) => (
-                <div key={i} className="order-card-mat-item">
-                  <span>{getRmLabel(m.rawMaterialId)} × {m.quantitySent}</span>
-                  <span className="order-card-mat-store">from {getLabel(stores, m.sourceStoreId)}</span>
-                </div>
-              ))}
-            </div>
             {o.status === "CREATED" && (
               <div className="order-card-actions">
                 <div className="form-row">
@@ -196,13 +134,7 @@ export default function ProductionOrders() {
                   </select>
                   <button onClick={() => complete(o.id)}>Complete</button>
                 </div>
-                <div className="form-row">
-                  <select value={returnStore[o.id] || ""} onChange={(e) => setReturnStore({ ...returnStore, [o.id]: e.target.value })}>
-                    <option value="">Return to Store</option>
-                    {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                  <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
-                </div>
+                <button type="button" style={{ background: "#dc2626" }} onClick={() => cancelOrder(o.id)}>Cancel Order</button>
               </div>
             )}
           </div>

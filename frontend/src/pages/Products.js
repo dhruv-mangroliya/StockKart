@@ -85,7 +85,7 @@ export default function Products() {
               <option value="">Select Raw Material</option>
               {rawMaterials.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.color})</option>)}
             </select>
-            <input type="number" min="1" value={b.quantityRequiredPerUnit} onChange={(e) => updateBom(i, "quantityRequiredPerUnit", e.target.value)} placeholder="Qty/unit" required />
+            <input type="number" min="0.001" step="any" value={b.quantityRequiredPerUnit} onChange={(e) => updateBom(i, "quantityRequiredPerUnit", e.target.value)} placeholder="Qty/unit" required />
             {bom.length > 1 && <button type="button" onClick={() => setBom(bom.filter((_, j) => j !== i))}>✕</button>}
           </div>
         ))}
@@ -128,7 +128,7 @@ export default function Products() {
                           <option value="">Select</option>
                           {rawMaterials.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.color})</option>)}
                         </select>
-                        <input type="number" min="1" value={b.quantityRequiredPerUnit} onChange={(e) => updateEditBom(i, "quantityRequiredPerUnit", e.target.value)} style={{ width: 70 }} />
+                        <input type="number" min="0.001" step="any" value={b.quantityRequiredPerUnit} onChange={(e) => updateEditBom(i, "quantityRequiredPerUnit", e.target.value)} style={{ width: 70 }} />
                         {editBom.length > 1 && <button type="button" onClick={() => setEditBom(editBom.filter((_, j) => j !== i))}>✕</button>}
                       </div>
                     ))}

@@ -50,7 +50,8 @@ export default function PrivacyPolicy() {
 
       <Section title="8. Contact Us">
         <p>If you have any questions about this Privacy Policy, contact us at:</p>
-        <p><strong>Email:</strong> <a href="mailto:support@inventorymanager.in">support@inventorymanager.in</a></p>
+        <p><strong>Contact:</strong> +91 6353777747</p>
+        <p><strong>Email:</strong> <a href="mailto:support@inventorybook.in">support@inventorybook.in</a></p>
       </Section>
     </PolicyLayout>
   );
