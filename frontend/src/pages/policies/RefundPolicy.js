@@ -18,8 +18,9 @@ export default function RefundPolicy() {
       </Section>
 
       <Section title="3. Contact">
-        <p>For billing or refund-related questions (current or future), contact:</p>
-        <p><strong>Email:</strong> <a href="mailto:support@inventorymanager.in">support@inventorymanager.in</a></p>
+        <p>For billing or refund-related questions (current or future),</p>
+        <p><strong>Contact:</strong> +91 6353777747</p>
+        <p><strong>Email:</strong> <a href="mailto:support@inventorybook.in">support@inventorybook.in</a></p>
       </Section>
     </PolicyLayout>
   );

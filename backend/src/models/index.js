@@ -33,3 +33,15 @@ module.exports.ProductionOrder = mongoose.model("ProductionOrder", new mongoose.
   createdAt: { type: Date, default: Date.now },
   completedAt: { type: Date, default: null },
 }));
+module.exports.EcomBatch = mongoose.model("EcomBatch", new mongoose.Schema({
+  ...uid,
+  type: { type: String, enum: ["return", "dispatch"], required: true },
+  platform: { type: String, default: "" },
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store", required: true },
+  items: [{
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+    productName: { type: String, required: true },
+    quantity: { type: Number, required: true },
+  }],
+  createdAt: { type: Date, default: Date.now },
+}));

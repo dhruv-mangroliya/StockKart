@@ -1,15 +1,20 @@
 import { useState } from "react";
 
 const PLANS = [
-  { id: "1m", label: "1 Month", price: 99, description: "₹99 / month" },
-  { id: "6m", label: "6 Months", price: 499, description: "₹499 / 6 months  •  Save ₹95" },
-  { id: "1y", label: "1 Year", price: 799, description: "₹799 / year  •  Save ₹389" },
+  { id: "1m", label: "1 Month",  price: 99,    renewPrice: 799 },
+  { id: "6m", label: "6 Months", price: 3999,  renewPrice: 3999 },
+  { id: "1y", label: "1 Year",   price: 5999,  renewPrice: 5999 },
+  { id: "5y", label: "5 Years",  price: 19999, renewPrice: 19999 },
 ];
 
 export default function SubscriptionModal({ user, onSuccess }) {
   const [selectedPlan, setSelectedPlan] = useState("6m");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const hasPreviousSubscription = !!user?.subscription?.plan;
+
+  const getPrice = (plan) => hasPreviousSubscription && plan.id === "1m" ? plan.renewPrice : plan.price;
 
   const handleSubscribe = async () => {
     setLoading(true);
@@ -74,8 +79,8 @@ export default function SubscriptionModal({ user, onSuccess }) {
             >
               {plan.id === "6m" && <span className="popular-badge">Most Popular</span>}
               <div className="plan-label">{plan.label}</div>
-              <div className="plan-price">₹{plan.price}</div>
-              <div className="plan-desc">{plan.description}</div>
+              <div className="plan-price">₹{getPrice(plan)}</div>
+              <div className="plan-gst">+18% GST applicable</div>
             </div>
           ))}
         </div>

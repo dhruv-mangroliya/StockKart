@@ -171,7 +171,7 @@ export default function Inventory() {
     setError("");
     try {
       await api.post("/inventory/add", { ...form, quantity: Number(form.quantity) });
-      setForm({ itemType: "RAW", itemId: "", locationType: "STORE", locationId: "", quantity: "" });
+      setForm((f) => ({ ...f, quantity: "" }));
       loadInventory();
     } catch (err) { setError(err.message); }
   };
@@ -214,7 +214,7 @@ export default function Inventory() {
               <option value="">Select Location</option>
               {locationOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
-            <input type="number" min="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Quantity" required />
+            <input type="number" min="0.001" step="any" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Quantity" required />
             <button type="submit">Add Stock</button>
           </div>
         </form>
@@ -266,7 +266,7 @@ export default function Inventory() {
               <td>{inv.locationType}</td>
               <td>
                 {editing === inv.id
-                  ? <input type="number" min="0" value={editQty} onChange={(e) => setEditQty(e.target.value)} autoFocus style={{ width: 80 }} />
+                  ? <input type="number" min="0" step="any" value={editQty} onChange={(e) => setEditQty(e.target.value)} autoFocus style={{ width: 80 }} />
                   : inv.quantity}
               </td>
               <td>

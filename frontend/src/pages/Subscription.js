@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useAuth } from "../api/AuthContext";
 
 const PLANS = [
-  { id: "1m", label: "1 Month", price: 99, description: "Billed monthly", saving: null },
-  { id: "6m", label: "6 Months", price: 499, description: "₹83.2 / month", saving: "Save ₹95", popular: true },
-  { id: "1y", label: "1 Year", price: 799, description: "₹66.6 / month", saving: "Save ₹389" },
+  { id: "1m", label: "1 Month",  price: 99,    renewPrice: 799,   description: "Billed monthly",  saving: null },
+  { id: "6m", label: "6 Months", price: 3999,  renewPrice: 3999,  description: "₹666.5 / month",   saving: "Save ₹1,995", popular: true },
+  { id: "1y", label: "1 Year",   price: 5999,  renewPrice: 5999,  description: "₹499.9 / month",   saving: "Save ₹5,989" },
+  { id: "5y", label: "5 Years",  price: 19999, renewPrice: 19999, description: "₹333.3 / month",   saving: "Save ₹39,941" },
 ];
 
 export default function Subscription() {
@@ -12,6 +13,9 @@ export default function Subscription() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const hasPreviousSubscription = !!user?.subscription?.plan;
+  const getPrice = (plan) => hasPreviousSubscription && plan.id === "1m" ? plan.renewPrice : plan.price;
 
   const trialStart = user?.trialStartedAt || user?.createdAt;
   const trialExpiresAt = trialStart ? new Date(new Date(trialStart).getTime() + 5 * 24 * 60 * 60 * 1000) : null;
@@ -114,7 +118,8 @@ export default function Subscription() {
               <div key={plan.id} className={`sub-plan-card ${plan.popular ? "popular" : ""}`}>
                 {plan.popular && <div className="sub-popular-badge">Most Popular</div>}
                 <div className="sub-plan-label">{plan.label}</div>
-                <div className="sub-plan-price">₹{plan.price}</div>
+                <div className="sub-plan-price">₹{getPrice(plan)}</div>
+                <div className="sub-plan-gst">+18% GST applicable</div>
                 <div className="sub-plan-desc">{plan.description}</div>
                 {plan.saving && <div className="sub-plan-saving">{plan.saving}</div>}
                 <button

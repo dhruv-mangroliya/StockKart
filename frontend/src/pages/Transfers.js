@@ -41,8 +41,7 @@ export default function Transfers() {
     try {
       await api.post("/transfers", { ...form, quantity: Number(form.quantity) });
       setSuccess(`Successfully transferred ${form.quantity} unit(s)`);
-      setForm({ itemType: "RAW", itemId: "", fromStoreId: "", toStoreId: "", quantity: "" });
-      setInventory([]);
+      setForm((f) => ({ ...f, quantity: "" }));
     } catch (err) { setError(err.message); }
   };
 
@@ -79,7 +78,7 @@ export default function Transfers() {
           )}
           <div className="form-row">
             <input
-              type="number" min="1" max={availableQty() || undefined}
+              type="number" min="0.001" step="any" max={availableQty() || undefined}
               value={form.quantity}
               onChange={(e) => setForm({ ...form, quantity: e.target.value })}
               placeholder="Quantity to transfer" required
