@@ -10,9 +10,10 @@ const razorpay = new Razorpay({
 });
 
 const PLANS = {
-  "1m":  { amount: 9900,  duration: 30 },
-  "6m":  { amount: 49900,  duration: 180 },
-  "1y":  { amount: 79900,  duration: 365 },
+  "1m":     { amount: Math.round(9900 * 1.18),    renewAmount: Math.round(79900 * 1.18),  duration: 30 },
+  "6m":     { amount: Math.round(399900 * 1.18),  renewAmount: Math.round(399900 * 1.18), duration: 180 },
+  "1y":     { amount: Math.round(599900 * 1.18),  renewAmount: Math.round(599900 * 1.18), duration: 365 },
+  "5y":     { amount: Math.round(1999900 * 1.18), renewAmount: Math.round(1999900 * 1.18),duration: 1825 },
 };
 
 router.post("/create-order", async (req, res) => {
@@ -22,8 +23,12 @@ router.post("/create-order", async (req, res) => {
   if (!PLANS[plan]) return res.status(400).json({ error: "Invalid plan" });
 
   try {
+    const user = await User.findById(req.user._id);
+    const hasPreviousSubscription = !!user?.subscription?.plan;
+    const amount = hasPreviousSubscription && plan === "1m" ? PLANS[plan].renewAmount : PLANS[plan].amount;
+
     const order = await razorpay.orders.create({
-      amount: PLANS[plan].amount,
+      amount,
       currency: "INR",
       receipt: `rcpt_${Date.now()}`,
     });
