@@ -9,18 +9,11 @@ const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_URL?.replace(/\/$/, ""), credentials: true }));
 app.use(express.json());
-app.set("trust proxy", 1);
-
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  },
+  cookie: { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 },
 }));
 app.use(passport.initialize());
 app.use(passport.session());
