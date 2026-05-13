@@ -30,7 +30,7 @@ export default function Subscription() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("http://localhost:3001/payment/create-order", {
+      const res = await fetch("https://stockkart.onrender.com/payment/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -50,7 +50,7 @@ export default function Subscription() {
         prefill: { name: user.name, email: user.email },
         theme: { color: "#6366f1" },
         handler: async (response) => {
-          const verifyRes = await fetch("http://localhost:3001/payment/verify", {
+          const verifyRes = await fetch("https://stockkart.onrender.com/payment/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

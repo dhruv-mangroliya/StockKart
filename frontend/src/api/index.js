@@ -1,4 +1,4 @@
-const BASE = "http://localhost:3001";
+const BASE = "https://stockkart.onrender.com";
 
 const normalize = (data) => {
   if (Array.isArray(data)) return data.map(normalize);

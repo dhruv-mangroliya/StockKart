@@ -12,7 +12,7 @@ export default function Login() {
         <h1>Inventory Manager</h1>
         <p>Sign in to manage your inventory, production and stores.</p>
         {error && <p className="error">Authentication failed. Please try again.</p>}
-        <a href="http://localhost:3001/auth/google" className="google-btn">
+        <a href="https://stockkart.onrender.com/auth/google" className="google-btn">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={20} />
           Sign in with Google
         </a>
