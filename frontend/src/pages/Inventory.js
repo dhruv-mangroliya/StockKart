@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { api } from "../api";
 
 export default function Inventory() {
@@ -28,13 +28,22 @@ export default function Inventory() {
     api.get("/products").then(setProducts);
   };
 
-  const loadInventory = () => {
-    const params = new URLSearchParams();
-    if (filterItemType) params.set("itemType", filterItemType);
-    if (filterItemId) params.set("itemId", filterItemId);
-    api.get(`/inventory?${params}`).then(setInventory);
-    api.get("/inventory/global-stock").then(setGlobalStock);
-  };
+  // const loadInventory = () => {
+  //   const params = new URLSearchParams();
+  //   if (filterItemType) params.set("itemType", filterItemType);
+  //   if (filterItemId) params.set("itemId", filterItemId);
+  //   api.get(`/inventory?${params}`).then(setInventory);
+  //   api.get("/inventory/global-stock").then(setGlobalStock);
+  // };
+  const loadInventory = useCallback(() => {
+  const params = new URLSearchParams();
+
+  if (filterItemType) params.set("itemType", filterItemType);
+  if (filterItemId) params.set("itemId", filterItemId);
+
+  api.get(`/inventory?${params}`).then(setInventory);
+  api.get("/inventory/global-stock").then(setGlobalStock);
+}, [filterItemType, filterItemId]);
 
   const handleSearch = () => {
     setFilterItemType(tempFilterItemType);
@@ -125,7 +134,10 @@ export default function Inventory() {
   };
 
   useEffect(() => { loadAll(); }, []);
-  useEffect(() => { loadInventory(); }, [filterItemType, filterItemId]);
+  // useEffect(() => { loadInventory(); }, [filterItemType, filterItemId]);
+  useEffect(() => {
+  loadInventory();
+}, [loadInventory]);
 
   const getItemLabel = (type, id) => {
     if (type === "RAW") {
