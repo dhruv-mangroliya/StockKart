@@ -28,13 +28,6 @@ export default function Inventory() {
     api.get("/products").then(setProducts);
   };
 
-  // const loadInventory = () => {
-  //   const params = new URLSearchParams();
-  //   if (filterItemType) params.set("itemType", filterItemType);
-  //   if (filterItemId) params.set("itemId", filterItemId);
-  //   api.get(`/inventory?${params}`).then(setInventory);
-  //   api.get("/inventory/global-stock").then(setGlobalStock);
-  // };
   const loadInventory = useCallback(() => {
   const params = new URLSearchParams();
 

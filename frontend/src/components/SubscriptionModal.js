@@ -20,7 +20,7 @@ export default function SubscriptionModal({ user, onSuccess }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("https://stockkart.onrender.com/payment/create-order", {
+      const res = await fetch(`${process.env.BACKEND_URL}payment/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -39,7 +39,7 @@ export default function SubscriptionModal({ user, onSuccess }) {
         prefill: { name: user.name, email: user.email },
         theme: { color: "#6c63ff" },
         handler: async (response) => {
-          const verifyRes = await fetch("https://stockkart.onrender.com/payment/verify", {
+          const verifyRes = await fetch(`${process.env.BACKEND_URL}payment/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

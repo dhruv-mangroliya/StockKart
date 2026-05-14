@@ -6,7 +6,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
 
   const fetchUser = () => {
-    fetch("https://stockkart.onrender.com/auth/me", { credentials: "include" })
+    fetch(`${process.env.BACKEND_URL}auth/me`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setUser(data.user || null))
       .catch(() => setUser(null));
@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   useEffect(() => { fetchUser(); }, []);
 
   const logout = async () => {
-    await fetch("https://stockkart.onrender.com/auth/logout", { method: "POST", credentials: "include" });
+    await fetch(`${process.env.BACKEND_URL}auth/logout`, { method: "POST", credentials: "include" });
     setUser(null);
   };
 

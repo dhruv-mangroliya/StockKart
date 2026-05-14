@@ -123,7 +123,7 @@ function AppShell() {
           {new URLSearchParams(window.location.search).get("error") && (
             <p className="error">Authentication failed. Please try again.</p>
           )}
-          <a href="http://localhost:3001/auth/google" className="google-btn">
+          <a href={`${process.env.BACKEND_URL}auth/google`} className="google-btn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={20} />
             Sign in with Google
           </a>

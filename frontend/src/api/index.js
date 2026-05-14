@@ -1,4 +1,4 @@
-const BASE = "https://stockkart.onrender.com";
+const BASE = process.env.BACKEND_URL;
 
 const normalize = (data) => {
   if (Array.isArray(data)) return data.map(normalize);
