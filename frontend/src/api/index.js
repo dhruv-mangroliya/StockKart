@@ -1,4 +1,4 @@
-const BASE = process.env.BACKEND_URL;
+const BASE = (process.env.REACT_APP_BACKEND_URL || "http://localhost:3001").replace(/\/$/, "");
 
 const normalize = (data) => {
   if (Array.isArray(data)) return data.map(normalize);

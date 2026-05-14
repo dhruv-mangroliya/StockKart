@@ -47,10 +47,29 @@ const navGroups = [
   },
 ];
 
+const API = (process.env.REACT_APP_BACKEND_URL || "http://localhost:3001").replace(/\/$/, "");
+
 function AppShell() {
   const { user, logout, refreshUser } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true); };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setShowInstall(false));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") setShowInstall(false);
+    setInstallPrompt(null);
+  };
 
   useEffect(() => {
     if (user && !localStorage.getItem("onboarding_done")) {
@@ -62,7 +81,6 @@ function AppShell() {
 
   if (!user) return (
     <div className="app-layout">
-      {/* Blurred sidebar */}
       <aside className="sidebar">
         <div className="sidebar-bg-shapes">
           {[...Array(6)].map((_, i) => <div key={i} className={`sb-shape sb-shape-${i + 1}`} />)}
@@ -85,7 +103,6 @@ function AppShell() {
         </div>
       </aside>
 
-      {/* Blurred main content */}
       <main className="main-content" style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none" }}>
         <div className="main-bg-shapes">
           {[...Array(8)].map((_, i) => <div key={i} className={`main-shape main-shape-${i + 1}`} />)}
@@ -114,7 +131,6 @@ function AppShell() {
         </div>
       </main>
 
-      {/* Login modal overlay */}
       <div className="login-modal-overlay">
         <div className="login-modal-card">
           <div className="login-logo">📦</div>
@@ -123,7 +139,7 @@ function AppShell() {
           {new URLSearchParams(window.location.search).get("error") && (
             <p className="error">Authentication failed. Please try again.</p>
           )}
-          <a href={`${process.env.BACKEND_URL}auth/google`} className="google-btn">
+          <a href={`${API}/auth/google`} className="google-btn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={20} />
             Sign in with Google
           </a>
@@ -136,7 +152,6 @@ function AppShell() {
 
   return (
     <div className="app-layout">
-      {/* Mobile top bar */}
       <div className="mobile-topbar">
         <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
           <span /><span /><span />
@@ -147,9 +162,13 @@ function AppShell() {
           <span className="brand-tagline">Track.Manage.Grow</span>
         </div>
         {user.avatar && <img src={user.avatar} alt={user.name} className="avatar" referrerPolicy="no-referrer" />}
+        {showInstall && (
+          <button onClick={handleInstall} style={{ background: "linear-gradient(90deg,#6366f1,#8b5cf6)", border: "none", color: "white", fontSize: "0.72rem", fontWeight: 700, padding: "6px 10px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "none" }}>
+            📲 Install
+          </button>
+        )}
       </div>
 
-      {/* Sidebar backdrop on mobile */}
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
@@ -174,6 +193,9 @@ function AppShell() {
           <div className="nav-group">
             <span className="nav-group-label">Help</span>
             <button className="sidebar-link guide-btn" onClick={() => setShowOnboarding(true)}>📖 View Guide</button>
+            {showInstall && (
+              <button className="sidebar-link guide-btn" onClick={handleInstall}>📲 Install App</button>
+            )}
           </div>
           <div className="nav-group">
             <span className="nav-group-label">Legal</span>
@@ -183,8 +205,8 @@ function AppShell() {
             <NavLink to="/refund-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>💰 Refund Policy</NavLink>
           </div>
         </nav>
-
       </aside>
+
       <main className="main-content">
         {needsSubscription && <SubscriptionModal user={user} onSuccess={refreshUser} />}
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}

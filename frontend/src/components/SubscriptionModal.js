@@ -7,6 +7,8 @@ const PLANS = [
   { id: "5y", label: "5 Years",  price: 19999, renewPrice: 19999 },
 ];
 
+const API = (process.env.REACT_APP_BACKEND_URL || "http://localhost:3001").replace(/\/$/, "");
+
 export default function SubscriptionModal({ user, onSuccess }) {
   const [selectedPlan, setSelectedPlan] = useState("6m");
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function SubscriptionModal({ user, onSuccess }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}payment/create-order`, {
+      const res = await fetch(`${API}/payment/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -39,7 +41,7 @@ export default function SubscriptionModal({ user, onSuccess }) {
         prefill: { name: user.name, email: user.email },
         theme: { color: "#6c63ff" },
         handler: async (response) => {
-          const verifyRes = await fetch(`${process.env.BACKEND_URL}payment/verify`, {
+          const verifyRes = await fetch(`${API}/payment/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

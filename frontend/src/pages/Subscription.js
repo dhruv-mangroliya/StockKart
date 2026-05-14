@@ -8,6 +8,8 @@ const PLANS = [
   { id: "5y", label: "5 Years",  price: 19999, renewPrice: 19999, description: "₹333.3 / month",   saving: "Save ₹39,941" },
 ];
 
+const API = (process.env.REACT_APP_BACKEND_URL || "http://localhost:3001").replace(/\/$/, "");
+
 export default function Subscription() {
   const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ export default function Subscription() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}payment/create-order`, {
+      const res = await fetch(`${API}/payment/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -50,7 +52,7 @@ export default function Subscription() {
         prefill: { name: user.name, email: user.email },
         theme: { color: "#6366f1" },
         handler: async (response) => {
-          const verifyRes = await fetch(`${process.env.BACKEND_URL}payment/verify`, {
+          const verifyRes = await fetch(`${API}/payment/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -77,7 +79,6 @@ export default function Subscription() {
     <div className="page subscription-page">
       <h2>💳 Subscription</h2>
 
-      {/* Current Status Card */}
       <div className="sub-status-card">
         {isSubscribed ? (
           <>
@@ -109,7 +110,6 @@ export default function Subscription() {
       {error && <p className="subscription-error" style={{ marginTop: 16 }}>{error}</p>}
       {success && <p className="sub-success">{success}</p>}
 
-      {/* Plans */}
       {!isSubscribed && (
         <>
           <h3 style={{ marginBottom: "16px", color: "#1e1b4b", fontWeight: 700 }}>Choose a Plan</h3>
