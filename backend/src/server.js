@@ -7,7 +7,7 @@ const passport = require("./passport");
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL?.replace(/\/$/, ""), credentials: true }));
+app.use(cors({ origin: (process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:3000").replace(/\/$/, ""), credentials: true }));
 app.use(express.json());
 app.set("trust proxy", 1);
 
