@@ -5,8 +5,8 @@ const passport = require("../passport");
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 router.get("/google/callback",
-  passport.authenticate("google", { failureRedirect: `${process.env.CLIENT_URL}/login?error=auth_failed` }),
-  (req, res) => res.redirect(process.env.CLIENT_URL)
+  passport.authenticate("google", { failureRedirect: `${process.env.FRONTEND_URL || process.env.CLIENT_URL}/login?error=auth_failed` }),
+  (req, res) => res.redirect(process.env.FRONTEND_URL || process.env.CLIENT_URL)
 );
 
 router.get("/me", (req, res) => {
