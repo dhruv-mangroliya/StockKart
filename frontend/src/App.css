@@ -57,20 +57,6 @@ body {
   overflow: hidden;
 }
 
-.sb-shape {
-  position: absolute;
-  border-radius: 50%;
-  animation: floatShape linear infinite;
-}
-
-.sb-shape-1 { width: 180px; height: 180px; background: radial-gradient(circle, #6366f1, transparent); opacity: 0.35; top: -40px; left: -60px; animation-duration: 20s; }
-.sb-shape-2 { width: 120px; height: 120px; background: radial-gradient(circle, #8b5cf6, transparent); opacity: 0.3;  top: 30%; left: 60%; animation-duration: 25s; animation-delay: -8s; }
-.sb-shape-3 { width: 90px;  height: 90px;  background: radial-gradient(circle, #3b82f6, transparent); opacity: 0.28; top: 55%; left: -20px; animation-duration: 18s; animation-delay: -4s; }
-.sb-shape-4 { width: 150px; height: 150px; background: radial-gradient(circle, #4f46e5, transparent); opacity: 0.28; top: 70%; left: 40%; animation-duration: 22s; animation-delay: -12s; }
-.sb-shape-5 { width: 70px;  height: 70px;  background: radial-gradient(circle, #a78bfa, transparent); opacity: 0.35; top: 85%; left: 10%; animation-duration: 16s; animation-delay: -6s; }
-.sb-shape-6 { width: 100px; height: 100px; background: radial-gradient(circle, #06b6d4, transparent); opacity: 0.25; top: 45%; left: 30%; animation-duration: 30s; animation-delay: -2s; }
-
-
 
 .sidebar-nav {
   flex: 1;

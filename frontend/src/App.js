@@ -24,25 +24,25 @@ const navGroups = [
   {
     label: "Master Data",
     links: [
-      { to: "/", label: "🏪 Stores" },
-      { to: "/raw-materials", label: "🧵 Raw Materials" },
-      { to: "/products", label: "📦 Products" },
-      { to: "/producers", label: "🏭 Producers" },
+      { to: "/", label: "Stores" },
+      { to: "/raw-materials", label: "Raw Materials" },
+      { to: "/products", label: "Products" },
+      { to: "/producers", label: "Manufacturers" },
     ],
   },
   {
     label: "Inventory",
     links: [
-      { to: "/inventory", label: "📊 Inventory" },
-      { to: "/transfers", label: "🔁 Transfers" },
-      { to: "/producer-return", label: "↩ Producer Return" },
+      { to: "/inventory", label: "Inventory" },
+      { to: "/transfers", label: "Warehouse Transfers" },
+      { to: "/producer-return", label: "Manufacturer Return" },
     ],
   },
   {
     label: "Orders",
     links: [
-      { to: "/returns", label: "🛒 Ecom Orders" },
-      { to: "/production-orders", label: "⚙️ Production Orders" },
+      { to: "/returns", label: "Ecom Orders" },
+      { to: "/production-orders", label: "Manufacturer Orders" },
     ],
   },
 ];
@@ -53,23 +53,6 @@ function AppShell() {
   const { user, logout, refreshUser } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [showInstall, setShowInstall] = useState(false);
-
-  useEffect(() => {
-    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true); };
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setShowInstall(false));
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
-
-  const handleInstall = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") setShowInstall(false);
-    setInstallPrompt(null);
-  };
 
   useEffect(() => {
     if (user && !localStorage.getItem("onboarding_done")) {
@@ -82,9 +65,6 @@ function AppShell() {
   if (!user) return (
     <div className="app-layout">
       <aside className="sidebar">
-        <div className="sidebar-bg-shapes">
-          {[...Array(6)].map((_, i) => <div key={i} className={`sb-shape sb-shape-${i + 1}`} />)}
-        </div>
         <nav className="sidebar-nav">
           {navGroups.map((group) => (
             <div key={group.label} className="nav-group">
@@ -104,12 +84,9 @@ function AppShell() {
       </aside>
 
       <main className="main-content" style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none" }}>
-        <div className="main-bg-shapes">
-          {[...Array(8)].map((_, i) => <div key={i} className={`main-shape main-shape-${i + 1}`} />)}
-        </div>
         <div className="main-inner">
           <div className="page">
-            <h2>🏪 Stores</h2>
+            <h2>Stores</h2>
             <div className="form-block">
               <div className="form-row">
                 <input placeholder="Store name" readOnly />
@@ -133,8 +110,7 @@ function AppShell() {
 
       <div className="login-modal-overlay">
         <div className="login-modal-card">
-          <div className="login-logo">📦</div>
-          <h1>Inventory Manager</h1>
+          <h1>InventoryBook</h1>
           <p>Sign in to manage your inventory, production and stores.</p>
           {new URLSearchParams(window.location.search).get("error") && (
             <p className="error">Authentication failed. Please try again.</p>
@@ -162,19 +138,11 @@ function AppShell() {
           <span className="brand-tagline">Track.Manage.Grow</span>
         </div>
         {user.avatar && <img src={user.avatar} alt={user.name} className="avatar" referrerPolicy="no-referrer" />}
-        {showInstall && (
-          <button onClick={handleInstall} style={{ background: "linear-gradient(90deg,#6366f1,#8b5cf6)", border: "none", color: "white", fontSize: "0.72rem", fontWeight: 700, padding: "6px 10px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "none" }}>
-            📲 Install
-          </button>
-        )}
       </div>
 
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
-        <div className="sidebar-bg-shapes">
-          {[...Array(6)].map((_, i) => <div key={i} className={`sb-shape sb-shape-${i + 1}`} />)}
-        </div>
         <nav className="sidebar-nav">
           {navGroups.map((group) => (
             <div key={group.label} className="nav-group">
@@ -188,21 +156,18 @@ function AppShell() {
           ))}
           <div className="nav-group">
             <span className="nav-group-label">Account</span>
-            <NavLink to="/subscription" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>💳 Subscription</NavLink>
+            <NavLink to="/subscription" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>Subscription</NavLink>
           </div>
           <div className="nav-group">
             <span className="nav-group-label">Help</span>
-            <button className="sidebar-link guide-btn" onClick={() => setShowOnboarding(true)}>📖 View Guide</button>
-            {showInstall && (
-              <button className="sidebar-link guide-btn" onClick={handleInstall}>📲 Install App</button>
-            )}
+            <button className="sidebar-link guide-btn" onClick={() => setShowOnboarding(true)}>View Guide</button>
           </div>
           <div className="nav-group">
             <span className="nav-group-label">Legal</span>
-            <NavLink to="/privacy-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>🔒 Privacy Policy</NavLink>
-            <NavLink to="/terms-of-service" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>📄 Terms of Service</NavLink>
-            <NavLink to="/cookie-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>🍪 Cookie Policy</NavLink>
-            <NavLink to="/refund-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>💰 Refund Policy</NavLink>
+            <NavLink to="/privacy-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>Privacy Policy</NavLink>
+            <NavLink to="/terms-of-service" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>Terms of Service</NavLink>
+            <NavLink to="/cookie-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>Cookie Policy</NavLink>
+            <NavLink to="/refund-policy" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>Refund Policy</NavLink>
           </div>
         </nav>
       </aside>
@@ -225,9 +190,6 @@ function AppShell() {
             <button className="logout-btn" onClick={logout}>Logout</button>
           </div>
         </header>
-        <div className="main-bg-shapes">
-          {[...Array(8)].map((_, i) => <div key={i} className={`main-shape main-shape-${i + 1}`} />)}
-        </div>
         <div className="main-inner">
           <Routes>
             <Route path="/" element={<Stores />} />

@@ -23,6 +23,10 @@ export default function Returns() {
   // Confirmed session log (list of batches)
   const [batches, setBatches] = useState([]);
 
+  // Edit state
+  const [editingBatch, setEditingBatch] = useState(null);
+  const [editItems, setEditItems] = useState([]);
+
   const [error, setError] = useState("");
   const isDispatch = tab === "dispatch";
 
@@ -52,6 +56,8 @@ export default function Returns() {
     setItem(EMPTY_ITEM);
     setPending([]);
     setError("");
+    setEditingBatch(null);
+    setEditItems([]);
   };
 
   const addToPending = (e) => {
@@ -82,16 +88,77 @@ export default function Returns() {
     } catch (err) { setError(err.message); }
   };
 
+  const startEdit = (batch) => {
+    setEditingBatch(batch.id);
+    setEditItems(batch.items.map((item, index) => ({
+      ...item,
+      id: index,
+      newQuantity: ""
+    })));
+    setError("");
+  };
+
+  const cancelEdit = () => {
+    setEditingBatch(null);
+    setEditItems([]);
+    setError("");
+  };
+
+  const updateEditItem = (id, newQuantity) => {
+    setEditItems(prev => prev.map(item => 
+      item.id === id ? { ...item, newQuantity } : item
+    ));
+  };
+
+  const saveEdit = async () => {
+    setError("");
+    
+    // Validate that at least one item has a new quantity
+    const itemsToUpdate = editItems.filter(item => item.newQuantity && item.newQuantity !== "");
+    if (itemsToUpdate.length === 0) {
+      return setError("Enter at least one new quantity to update.");
+    }
+
+    // Validate quantities are positive numbers
+    for (const item of itemsToUpdate) {
+      if (Number(item.newQuantity) <= 0) {
+        return setError("All quantities must be positive numbers.");
+      }
+    }
+
+    try {
+      const batch = batches.find(b => b.id === editingBatch);
+      await api.put(`/ecom-batches/${editingBatch}`, {
+        type: batch.type,
+        storeId: batch.storeId,
+        updates: itemsToUpdate.map(item => ({
+          productId: item.productId,
+          oldQuantity: item.quantity,
+          newQuantity: Number(item.newQuantity)
+        }))
+      });
+
+      // Refresh batches
+      const updatedBatches = await api.get("/ecom-batches");
+      setBatches(updatedBatches);
+      
+      setEditingBatch(null);
+      setEditItems([]);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="page">
       <h2>Ecom Orders</h2>
 
       <div className="tab-bar">
-        <button type="button" className={!isDispatch ? "tab active" : "tab"} onClick={() => switchTab("return")}>
-          📦 Returns (Add Stock)
-        </button>
         <button type="button" className={isDispatch ? "tab active" : "tab"} onClick={() => switchTab("dispatch")}>
-          🚚 Dispatch (Reduce Stock)
+          Dispatch (Reduce Stock)
+        </button>
+        <button type="button" className={!isDispatch ? "tab active" : "tab"} onClick={() => switchTab("return")}>
+          Returns (Add Stock)
         </button>
       </div>
 
@@ -174,19 +241,88 @@ export default function Returns() {
                   <span className={`badge ${b.type === "return" ? "badge-green" : "badge-yellow"}`}>
                     {b.type === "return" ? "Return" : "Dispatch"}
                   </span>
-                  <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>{b.time || new Date(b.createdAt).toLocaleString()}</span>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>{b.time || new Date(b.createdAt).toLocaleString()}</span>
+                    {editingBatch !== b.id && (
+                      <button 
+                        type="button" 
+                        onClick={() => startEdit(b)}
+                        style={{ 
+                          background: "#3b82f6", 
+                          color: "white", 
+                          border: "none", 
+                          padding: "4px 8px", 
+                          borderRadius: "4px", 
+                          fontSize: "0.75rem",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div style={{ fontSize: "0.85rem", color: "#555", marginBottom: 8 }}>
                   <strong>{b.type === "return" ? "Returned to" : "Dispatched from"}:</strong> {b.store} {(b.platform && b.platform !== "—") && <> &nbsp;|&nbsp; <strong>Platform:</strong> {b.platform}</>}
                 </div>
-                <table style={{ margin: 0 }}>
-                  <thead><tr><th>Product</th><th>Quantity</th></tr></thead>
-                  <tbody>
-                    {b.items.map((it, i) => (
-                      <tr key={i}><td>{it.productName}</td><td>{it.quantity}</td></tr>
-                    ))}
-                  </tbody>
-                </table>
+                
+                {editingBatch === b.id ? (
+                  <div>
+                    <table style={{ margin: 0 }}>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Old Quantity</th>
+                          <th>New Quantity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {editItems.map((item) => (
+                          <tr key={item.id}>
+                            <td>{item.productName}</td>
+                            <td>{item.quantity}</td>
+                            <td>
+                              <input
+                                type="number"
+                                min="0.001"
+                                step="any"
+                                value={item.newQuantity}
+                                onChange={(e) => updateEditItem(item.id, e.target.value)}
+                                placeholder="Enter new qty"
+                                style={{ width: "100px" }}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div style={{ marginTop: 10, display: "flex", gap: "8px" }}>
+                      <button 
+                        type="button" 
+                        onClick={saveEdit}
+                        style={{ background: "#16a34a", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}
+                      >
+                        Save Changes
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={cancelEdit}
+                        style={{ background: "#6b7280", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <table style={{ margin: 0 }}>
+                    <thead><tr><th>Product</th><th>Quantity</th></tr></thead>
+                    <tbody>
+                      {b.items.map((it, i) => (
+                        <tr key={i}><td>{it.productName}</td><td>{it.quantity}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             ))}
           </div>
