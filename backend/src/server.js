@@ -8,9 +8,17 @@ const passport = require("./passport");
 const app = express();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:3000").replace(/\/$/, "");
-console.log("CORS Origin:", FRONTEND_URL);
 
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+
+const corsOptions = {
+  origin: FRONTEND_URL,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.set("trust proxy", 1);
 
@@ -20,8 +28,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    domain: process.env.NODE_ENV === "production" ? ".inventorybook.in" : "localhost",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));

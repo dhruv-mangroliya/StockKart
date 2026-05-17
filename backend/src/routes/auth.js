@@ -10,7 +10,7 @@ router.get("/google/callback",
 );
 
 router.get("/me", (req, res) => {
-  if (!req.user) return res.status(401).json({ user: null });
+  if (!req.user) return res.status(200).json({ user: null });
   const { googleId, name, email, avatar, trialStartedAt, createdAt, subscription } = req.user;
   const trialStart = trialStartedAt || createdAt || new Date();
   const trialExpired = Date.now() - new Date(trialStart).getTime() > 5 * 24 * 60 * 60 * 1000;

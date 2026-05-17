@@ -45,4 +45,63 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  const { type, storeId, updates } = req.body;
+  
+  if (!type || !storeId || !updates?.length) {
+    return res.status(400).json({ error: "Type, storeId, and updates are required" });
+  }
+
+  try {
+    const batch = await EcomBatch.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!batch) {
+      return res.status(404).json({ error: "Batch not found" });
+    }
+
+    // Process inventory adjustments for each updated item
+    for (const update of updates) {
+      const { productId, oldQuantity, newQuantity } = update;
+      const quantityDiff = newQuantity - oldQuantity;
+
+      if (quantityDiff !== 0) {
+        const entry = await findOrCreateEntry(req.user._id, "PRODUCT", productId, "STORE", storeId);
+        
+        if (type === "dispatch") {
+          // For dispatch: if newQuantity > oldQuantity, we need to reduce more stock
+          // if newQuantity < oldQuantity, we need to add back stock
+          entry.quantity -= quantityDiff;
+        } else {
+          // For return: if newQuantity > oldQuantity, we need to add more stock
+          // if newQuantity < oldQuantity, we need to reduce stock
+          entry.quantity += quantityDiff;
+        }
+
+        if (entry.quantity < 0) {
+          return res.status(400).json({ error: `Insufficient stock for product ${productId}` });
+        }
+
+        await entry.save();
+
+        // Update the batch item quantity
+        const batchItem = batch.items.find(item => item.productId === productId);
+        if (batchItem) {
+          batchItem.quantity = newQuantity;
+        }
+      }
+    }
+
+    await batch.save();
+    
+    const store = await Store.findById(storeId);
+    res.json({ 
+      ...batch.toObject(), 
+      id: batch._id, 
+      store: store?.name,
+      message: "Batch updated successfully"
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
