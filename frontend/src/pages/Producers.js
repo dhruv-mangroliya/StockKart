@@ -44,7 +44,7 @@ export default function Producers() {
 
   return (
     <div className="page">
-      <h2>Producers</h2>
+      <h2>Manufacturer Details</h2>
       <form onSubmit={submit} className="form-row">
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Producer name" required />
         <button type="submit">Add Producer</button>

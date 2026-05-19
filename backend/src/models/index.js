@@ -45,3 +45,24 @@ module.exports.EcomBatch = mongoose.model("EcomBatch", new mongoose.Schema({
   }],
   createdAt: { type: Date, default: Date.now },
 }));
+module.exports.ProducerReturn = mongoose.model("ProducerReturn", new mongoose.Schema({
+  ...uid,
+  producerId: { type: mongoose.Schema.Types.ObjectId, ref: "Producer", required: true },
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store", required: true },
+  materials: [{
+    rawMaterialId: { type: mongoose.Schema.Types.ObjectId, ref: "RawMaterial", required: true },
+    rawMaterialName: { type: String, required: true },
+    quantity: { type: Number, required: true },
+  }],
+  createdAt: { type: Date, default: Date.now },
+}));
+module.exports.Transfer = mongoose.model("Transfer", new mongoose.Schema({
+  ...uid,
+  itemType: { type: String, enum: ["RAW", "PRODUCT"], required: true },
+  itemId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  itemName: { type: String, required: true },
+  fromStoreId: { type: mongoose.Schema.Types.ObjectId, ref: "Store", required: true },
+  toStoreId: { type: mongoose.Schema.Types.ObjectId, ref: "Store", required: true },
+  quantity: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
+}));

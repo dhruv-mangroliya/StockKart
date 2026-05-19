@@ -79,7 +79,7 @@ export default function ProductionOrders() {
       <div className="orders-table-wrap">
         <table>
           <thead>
-            <tr><th>#</th><th>Product</th><th>Producer</th><th>Required Qty</th><th>Output Qty</th><th>Destination Store</th><th>Status</th><th>Action</th></tr>
+            <tr><th>#</th><th>Product</th><th>Producer</th><th>Required Qty</th><th>Output Qty</th><th>Destination Store</th><th>Created Date</th><th>Completed Date</th><th>Status</th><th>Action</th></tr>
           </thead>
           <tbody>
             {orders.map((o, idx) => (
@@ -90,6 +90,8 @@ export default function ProductionOrders() {
                 <td>{o.requiredQuantity}</td>
                 <td>{o.outputQuantity || "-"}</td>
                 <td>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</td>
+                <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                <td>{o.completedAt ? new Date(o.completedAt).toLocaleDateString() : "-"}</td>
                 <td><span className={`badge ${o.status === "COMPLETED" ? "badge-green" : "badge-yellow"}`}>{o.status}</span></td>
                 <td>
                   {o.status === "CREATED" && (
@@ -107,7 +109,7 @@ export default function ProductionOrders() {
                 </td>
               </tr>
             ))}
-            {orders.length === 0 && <tr><td colSpan="8" style={{ textAlign: "center" }}>No orders yet</td></tr>}
+            {orders.length === 0 && <tr><td colSpan="10" style={{ textAlign: "center" }}>No orders yet</td></tr>}
           </tbody>
         </table>
       </div>
@@ -125,6 +127,8 @@ export default function ProductionOrders() {
             <div className="order-card-row"><span>Required Qty</span><strong>{o.requiredQuantity}</strong></div>
             <div className="order-card-row"><span>Output Qty</span><strong>{o.outputQuantity || "-"}</strong></div>
             <div className="order-card-row"><span>Destination</span><strong>{o.destinationStoreId ? getLabel(stores, o.destinationStoreId) : "-"}</strong></div>
+            <div className="order-card-row"><span>Created Date</span><strong>{new Date(o.createdAt).toLocaleDateString()}</strong></div>
+            <div className="order-card-row"><span>Completed Date</span><strong>{o.completedAt ? new Date(o.completedAt).toLocaleDateString() : "-"}</strong></div>
             {o.status === "CREATED" && (
               <div className="order-card-actions">
                 <div className="form-row">

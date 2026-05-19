@@ -6,15 +6,19 @@ export default function Transfers() {
   const [rawMaterials, setRawMaterials] = useState([]);
   const [products, setProducts] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [transfers, setTransfers] = useState([]);
   const [form, setForm] = useState({ itemType: "RAW", itemId: "", fromStoreId: "", toStoreId: "", quantity: "" });
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const loadAll = () => {
     api.get("/stores").then(setStores);
     api.get("/raw-materials").then(setRawMaterials);
     api.get("/products").then(setProducts);
-  }, []);
+    api.get("/transfers").then(setTransfers);
+  };
+
+  useEffect(() => { loadAll(); }, []);
 
   // Load available stock when fromStore or itemType changes
   useEffect(() => {
@@ -39,7 +43,8 @@ export default function Transfers() {
     setError("");
     setSuccess("");
     try {
-      await api.post("/transfers", { ...form, quantity: Number(form.quantity) });
+      const transferLog = await api.post("/transfers", { ...form, quantity: Number(form.quantity) });
+      setTransfers(prev => [transferLog, ...prev]);
       setSuccess(`Successfully transferred ${form.quantity} unit(s)`);
       setForm((f) => ({ ...f, quantity: "" }));
     } catch (err) { setError(err.message); }
@@ -47,7 +52,7 @@ export default function Transfers() {
 
   return (
     <div className="page">
-      <h2>Internal Transfer</h2>
+      <h2>Warehouse Transfer</h2>
       <div className="form-block">
         <h3>Transfer Stock Between Stores</h3>
         <form onSubmit={submit}>
@@ -89,6 +94,40 @@ export default function Transfers() {
         {error && <p className="error">{error}</p>}
         {success && <p style={{ color: "#16a34a", marginTop: 8, fontSize: "0.875rem" }}>✓ {success}</p>}
       </div>
+
+      {transfers.length > 0 && (
+        <>
+          <h3>Transfer History</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {transfers.map((t) => (
+              <div key={t.id} className="form-block" style={{ margin: 0 }}>
+                <table style={{ margin: 0 }}>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Type</th>
+                      <th>Quantity</th>
+                      <th>From Store</th>
+                      <th>To Store</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{t.itemName}</td>
+                      <td>{t.itemType === "RAW" ? "Raw Material" : "Product"}</td>
+                      <td>{t.quantity}</td>
+                      <td>{t.fromStore}</td>
+                      <td>{t.toStore}</td>
+                      <td>{new Date(t.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

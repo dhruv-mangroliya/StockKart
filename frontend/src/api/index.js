@@ -6,7 +6,11 @@ const normalize = (data) => {
     const obj = { ...data };
     if (obj._id) { obj.id = obj._id; delete obj._id; }
     for (const key of Object.keys(obj)) {
-      if (typeof obj[key] === "object" && obj[key] !== null) obj[key] = normalize(obj[key]);
+      if (Array.isArray(obj[key])) {
+        obj[key] = obj[key].map(normalize);
+      } else if (typeof obj[key] === "object" && obj[key] !== null) {
+        obj[key] = normalize(obj[key]);
+      }
     }
     return obj;
   }

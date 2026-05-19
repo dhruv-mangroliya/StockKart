@@ -91,8 +91,10 @@ export default function Returns() {
   const startEdit = (batch) => {
     setEditingBatch(batch.id);
     setEditItems(batch.items.map((item, index) => ({
-      ...item,
       id: index,
+      productId: item.productId,
+      productName: item.productName,
+      quantity: item.quantity,
       newQuantity: ""
     })));
     setError("");
@@ -113,13 +115,11 @@ export default function Returns() {
   const saveEdit = async () => {
     setError("");
     
-    // Validate that at least one item has a new quantity
     const itemsToUpdate = editItems.filter(item => item.newQuantity && item.newQuantity !== "");
     if (itemsToUpdate.length === 0) {
       return setError("Enter at least one new quantity to update.");
     }
 
-    // Validate quantities are positive numbers
     for (const item of itemsToUpdate) {
       if (Number(item.newQuantity) <= 0) {
         return setError("All quantities must be positive numbers.");
@@ -128,7 +128,11 @@ export default function Returns() {
 
     try {
       const batch = batches.find(b => b.id === editingBatch);
-      await api.put(`/ecom-batches/${editingBatch}`, {
+      console.log("=== SAVE EDIT DEBUG ===");
+      console.log("Current batch:", batch);
+      console.log("Items to update:", itemsToUpdate);
+      
+      const updatedBatch = await api.put(`/ecom-batches/${editingBatch}`, {
         type: batch.type,
         storeId: batch.storeId,
         updates: itemsToUpdate.map(item => ({
@@ -138,13 +142,26 @@ export default function Returns() {
         }))
       });
 
-      // Refresh batches
-      const updatedBatches = await api.get("/ecom-batches");
-      setBatches(updatedBatches);
+      console.log("Updated batch from API:", updatedBatch);
+      console.log("Updated batch items:", updatedBatch.items);
+
+      setBatches(prev => {
+        const newBatches = prev.map(b => {
+          if (b.id === editingBatch) {
+            console.log("Replacing batch ID:", b.id, "Old items:", b.items, "New items:", updatedBatch.items);
+            return updatedBatch;
+          }
+          return b;
+        });
+        console.log("New batches array:", newBatches);
+        return newBatches;
+      });
       
       setEditingBatch(null);
       setEditItems([]);
+      console.log("=======================");
     } catch (err) {
+      console.error("Error saving edit:", err);
       setError(err.message);
     }
   };
@@ -242,7 +259,6 @@ export default function Returns() {
                     {b.type === "return" ? "Return" : "Dispatch"}
                   </span>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>{b.time || new Date(b.createdAt).toLocaleString()}</span>
                     {editingBatch !== b.id && (
                       <button 
                         type="button" 
@@ -261,9 +277,6 @@ export default function Returns() {
                       </button>
                     )}
                   </div>
-                </div>
-                <div style={{ fontSize: "0.85rem", color: "#555", marginBottom: 8 }}>
-                  <strong>{b.type === "return" ? "Returned to" : "Dispatched from"}:</strong> {b.store} {(b.platform && b.platform !== "—") && <> &nbsp;|&nbsp; <strong>Platform:</strong> {b.platform}</>}
                 </div>
                 
                 {editingBatch === b.id ? (
@@ -315,10 +328,24 @@ export default function Returns() {
                   </div>
                 ) : (
                   <table style={{ margin: 0 }}>
-                    <thead><tr><th>Product</th><th>Quantity</th></tr></thead>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Platform</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {b.items.map((it, i) => (
-                        <tr key={i}><td>{it.productName}</td><td>{it.quantity}</td></tr>
+                        <tr key={i}>
+                          <td>{it.productName}</td>
+                          <td>{it.quantity}</td>
+                          <td>{b.platform || "—"}</td>
+                          <td>{b.store}</td>
+                          <td>{new Date(b.createdAt).toLocaleDateString()}</td>
+                        </tr>
                       ))}
                     </tbody>
                   </table>

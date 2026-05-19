@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { ProductionOrder, Product, Inventory } = require("../models");
+const { ProductionOrder, Product, Inventory, RawMaterial } = require("../models");
 const { findOrCreateEntry } = require("./inventory");
 const auth = require("../middleware/auth");
 
@@ -23,8 +23,11 @@ router.post("/", async (req, res) => {
   for (const bom of product.billOfMaterials) {
     const required = bom.quantityRequiredPerUnit * requiredQuantity;
     const prodInv = await Inventory.findOne({ userId: req.user._id, itemType: "RAW", itemId: bom.rawMaterialId, locationType: "PRODUCER", locationId: producerId });
-    if (!prodInv || prodInv.quantity < required)
-      return res.status(400).json({ error: `Producer has insufficient stock for material ${bom.rawMaterialId} (needs ${required}, has ${prodInv?.quantity ?? 0})` });
+    if (!prodInv || prodInv.quantity < required) {
+      const rawMaterial = await RawMaterial.findById(bom.rawMaterialId);
+      const materialName = rawMaterial ? `${rawMaterial.name} (${rawMaterial.color})` : bom.rawMaterialId;
+      return res.status(400).json({ error: `Producer has insufficient stock for material ${materialName} (needs ${required}, has ${prodInv?.quantity ?? 0})` });
+    }
   }
 
   const order = await ProductionOrder.create({ userId: req.user._id, productId, producerId, requiredQuantity: Number(requiredQuantity) });
@@ -53,8 +56,11 @@ router.post("/:id/complete", async (req, res) => {
   for (const bom of product.billOfMaterials) {
     const required = bom.quantityRequiredPerUnit * outputQuantity;
     const prodInv = await Inventory.findOne({ userId: req.user._id, itemType: "RAW", itemId: bom.rawMaterialId, locationType: "PRODUCER", locationId: order.producerId });
-    if (!prodInv || prodInv.quantity < required)
-      return res.status(400).json({ error: `Producer lacks sufficient material ${bom.rawMaterialId}` });
+    if (!prodInv || prodInv.quantity < required) {
+      const rawMaterial = await RawMaterial.findById(bom.rawMaterialId);
+      const materialName = rawMaterial ? `${rawMaterial.name} (${rawMaterial.color})` : bom.rawMaterialId;
+      return res.status(400).json({ error: `Producer lacks sufficient material ${materialName}` });
+    }
   }
 
   for (const bom of product.billOfMaterials) {

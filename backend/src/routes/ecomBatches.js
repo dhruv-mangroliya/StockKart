@@ -67,12 +67,8 @@ router.put("/:id", async (req, res) => {
         const entry = await findOrCreateEntry(req.user._id, "PRODUCT", productId, "STORE", storeId);
         
         if (type === "dispatch") {
-          // For dispatch: if newQuantity > oldQuantity, we need to reduce more stock
-          // if newQuantity < oldQuantity, we need to add back stock
           entry.quantity -= quantityDiff;
         } else {
-          // For return: if newQuantity > oldQuantity, we need to add more stock
-          // if newQuantity < oldQuantity, we need to reduce stock
           entry.quantity += quantityDiff;
         }
 
@@ -83,7 +79,7 @@ router.put("/:id", async (req, res) => {
         await entry.save();
 
         // Update the batch item quantity
-        const batchItem = batch.items.find(item => item.productId === productId);
+        const batchItem = batch.items.find(item => String(item.productId) === String(productId));
         if (batchItem) {
           batchItem.quantity = newQuantity;
         }
@@ -94,10 +90,9 @@ router.put("/:id", async (req, res) => {
     
     const store = await Store.findById(storeId);
     res.json({ 
-      ...batch.toObject(), 
-      id: batch._id, 
-      store: store?.name,
-      message: "Batch updated successfully"
+      ...batch.toObject(),
+      id: batch._id,
+      store: store?.name
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
