@@ -13,6 +13,7 @@ import ProductionOrders from "./pages/ProductionOrders";
 import AlertManager from "./pages/AlertManager";
 import AboutFeatures from "./pages/AboutFeatures";
 import VisualiseOrder from "./pages/VisualiseOrder";
+import RecommendationEngine from "./pages/RecommendationEngine";
 import Onboarding from "./components/Onboarding";
 import TodoPanel from "./components/TodoPanel";
 import Alerts from "./components/Alerts";
@@ -52,6 +53,7 @@ const navGroups = [
       { to: "/returns", label: "Ecom Orders" },
       { to: "/production-orders", label: "Manufacturer Orders" },
       { to: "/visualise-order", label: "Visualise Orders" },
+      { to: "/recommendation-engine", label: "Recommendation Engine" },
     ],
   },
 ];
@@ -212,6 +214,7 @@ function AppShell() {
             <Route path="/returns" element={<Returns />} />
             <Route path="/production-orders" element={<ProductionOrders />} />
             <Route path="/visualise-order" element={<VisualiseOrder />} />
+            <Route path="/recommendation-engine" element={<RecommendationEngine />} />
             <Route path="/about-features" element={<AboutFeatures />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

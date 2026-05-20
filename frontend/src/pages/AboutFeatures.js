@@ -150,6 +150,20 @@ const FEATURES = [
       "Health status based on return rate: Excellent (< 10%), Good (10-15%), Needs attention (> 15%)",
     ],
   },
+  {
+    title: "Recommendation Engine — Demand Forecasting & Runway Analysis",
+    logic: "AI-powered demand forecasting using weighted average of last 10 days order data (dispatch - return). Calculates today's demand adjusted for holiday severity. Provides runway analysis showing how many days current stock can sustain orders. Two scenarios: Worst Case (no new production received) and Best Case (all completed production orders received today). Helps prevent stockouts and optimize ordering.",
+    details: [
+      "Weighted demand calculation: Last day weight 10, 10 days before weight 1",
+      "Holiday severity adjustment: LOW (1x), MEDIUM (1.3x), HIGH/Diwali (1.75x)",
+      "Configurable runway days (default 7 days)",
+      "Worst Case: Days stock lasts without new production",
+      "Best Case: Days stock lasts if all completed orders received today",
+      "Item-wise recommendations: URGENT, HIGH, or NORMAL",
+      "Color-coded alerts: Red (URGENT), Orange (HIGH), Green (NORMAL)",
+      "Real-time calculation based on current inventory and production orders",
+    ],
+  },
 ];
 
 export default function AboutFeatures() {
