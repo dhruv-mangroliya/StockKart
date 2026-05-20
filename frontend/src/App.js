@@ -6,12 +6,16 @@ import RawMaterials from "./pages/RawMaterials";
 import Products from "./pages/Products";
 import Producers from "./pages/Producers";
 import Inventory from "./pages/Inventory";
+import VisualiseInventory from "./pages/VisualiseInventory";
 import Transfers from "./pages/Transfers";
 import Returns from "./pages/Returns";
 import ProducerReturn from "./pages/ProducerReturn";
 import ProductionOrders from "./pages/ProductionOrders";
+import AlertManager from "./pages/AlertManager";
 import Onboarding from "./components/Onboarding";
 import TodoPanel from "./components/TodoPanel";
+import Alerts from "./components/Alerts";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import SubscriptionModal from "./components/SubscriptionModal";
 import Subscription from "./pages/Subscription";
 import PrivacyPolicy from "./pages/policies/PrivacyPolicy";
@@ -34,6 +38,8 @@ const navGroups = [
     label: "Inventory",
     links: [
       { to: "/inventory", label: "Inventory" },
+      { to: "/visualise-inventory", label: "Visualise Inventory" },
+      { to: "/alert-manager", label: "Alert Manager" },
       { to: "/transfers", label: "Warehouse Transfers" },
       { to: "/producer-return", label: "Manufacturer Return" },
     ],
@@ -175,6 +181,7 @@ function AppShell() {
       <main className="main-content">
         {needsSubscription && <SubscriptionModal user={user} onSuccess={refreshUser} />}
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
+        <PWAInstallPrompt />
         <header className="main-header">
           <img src="/mainLogo.png" alt="InventoryBook" className="header-logo" />
           <div className="header-brand">
@@ -182,6 +189,7 @@ function AppShell() {
             <span className="brand-tagline">Track.Manage.Grow</span>
           </div>
           <div className="header-right">
+            <Alerts />
             <div className="header-user-info">
               <span className="header-user-name">{user.name}</span>
               <span className="header-user-email">{user.email}</span>
@@ -197,6 +205,8 @@ function AppShell() {
             <Route path="/products" element={<Products />} />
             <Route path="/producers" element={<Producers />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/visualise-inventory" element={<VisualiseInventory />} />
+            <Route path="/alert-manager" element={<AlertManager />} />
             <Route path="/transfers" element={<Transfers />} />
             <Route path="/producer-return" element={<ProducerReturn />} />
             <Route path="/returns" element={<Returns />} />

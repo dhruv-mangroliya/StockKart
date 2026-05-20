@@ -47,6 +47,16 @@ const STEPS = [
     tip: "Example: Send 50m Cotton Fabric + 10 Thread packs to Rohit Mishra to produce 20 Anarkali Kurtis → receive them into Mumbai Showroom.",
   },
   {
+    title: "🔔 Step 9 — Alert Manager",
+    desc: "Set low-stock thresholds for any raw material or product. When total inventory across all stores drops below your threshold, the item appears as an active alert.",
+    tip: "Example: Set an alert for \"Cotton Fabric - White\" at 100m. If total stock falls below 100m, it shows up in the Alerts panel in the header.",
+  },
+  {
+    title: "📲 Step 10 — Push Notifications",
+    desc: "Get browser notifications when stock drops below your alert thresholds. Open the ALERTS panel in the header — if notifications are off, a yellow banner appears inside with an Enable button. Click it to allow notifications.",
+    tip: "Once enabled, you'll get a notification the first time each item crosses its threshold. The panel auto-checks every 30 seconds in the background.",
+  },
+  {
     title: "✅ You're all set!",
     desc: "You now know everything to manage your inventory end-to-end. You can reopen this guide anytime from the sidebar.",
     tip: null,

@@ -49,6 +49,7 @@ app.use("/inventory", require("./routes/inventory"));
 app.use("/transfers", require("./routes/transfers"));
 app.use("/production-orders", require("./routes/productionOrders"));
 app.use("/ecom-batches", require("./routes/ecomBatches"));
+app.use("/alerts", require("./routes/alerts"));
 
 mongoose
   .connect(process.env.MONGODB_URI, { dbName: process.env.DB_NAME })

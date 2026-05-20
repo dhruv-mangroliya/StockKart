@@ -66,3 +66,10 @@ module.exports.Transfer = mongoose.model("Transfer", new mongoose.Schema({
   quantity: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
 }));
+module.exports.Alert = mongoose.model("Alert", new mongoose.Schema({
+  ...uid,
+  itemType: { type: String, enum: ["RAW", "PRODUCT"], required: true },
+  itemId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  alertQuantity: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
+}));

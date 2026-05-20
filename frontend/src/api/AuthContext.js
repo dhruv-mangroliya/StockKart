@@ -13,7 +13,11 @@ export function AuthProvider({ children }) {
       .catch(() => setUser(null));
   };
 
-  useEffect(() => { fetchUser(); }, []);
+  useEffect(() => {
+    // Small delay to ensure session cookie is committed after OAuth redirect
+    const t = setTimeout(fetchUser, 100);
+    return () => clearTimeout(t);
+  }, []);
 
   const logout = async () => {
     await fetch(`${API}/auth/logout`, { method: "POST", credentials: "include" });
