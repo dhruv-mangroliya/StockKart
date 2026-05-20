@@ -37,43 +37,12 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   if (!url.protocol.startsWith("http")) return;
 
-  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/auth")) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((c) => c.put(request, cloned));
-          }
-          return response;
-        })
-        .catch(() =>
-          caches.match(request).then((cached) =>
-            cached || new Response("Offline - API not available", { status: 503 })
-          )
-        )
-    );
-  } else {
-    // Never cache HTML documents — always fetch fresh so auth state is correct
-    if (request.destination === "document" || url.pathname === "/" || url.pathname.endsWith(".html")) {
-      event.respondWith(
-        fetch(request).catch(() => caches.match("/index.html"))
-      );
-      return;
-    }
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((c) => c.put(request, cloned));
-          }
-          return response;
-        }).catch(() => new Response("Offline - Resource not available", { status: 503 }));
-      })
-    );
-  }
+  // Never cache - always fetch fresh to prevent stale data on multiple devices
+  event.respondWith(
+    fetch(request)
+      .then((response) => response)
+      .catch(() => new Response("Offline - Resource not available", { status: 503 }))
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

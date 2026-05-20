@@ -1,17 +1,18 @@
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./api/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Stores from "./pages/Stores";
 import RawMaterials from "./pages/RawMaterials";
 import Products from "./pages/Products";
 import Producers from "./pages/Producers";
 import Inventory from "./pages/Inventory";
-import VisualiseInventory from "./pages/VisualiseInventory";
 import Transfers from "./pages/Transfers";
 import Returns from "./pages/Returns";
 import ProducerReturn from "./pages/ProducerReturn";
 import ProductionOrders from "./pages/ProductionOrders";
 import AlertManager from "./pages/AlertManager";
+import AboutFeatures from "./pages/AboutFeatures";
+import VisualiseOrder from "./pages/VisualiseOrder";
 import Onboarding from "./components/Onboarding";
 import TodoPanel from "./components/TodoPanel";
 import Alerts from "./components/Alerts";
@@ -22,6 +23,8 @@ import TermsOfService from "./pages/policies/TermsOfService";
 import CookiePolicy from "./pages/policies/CookiePolicy";
 import RefundPolicy from "./pages/policies/RefundPolicy";
 import "./App.css";
+
+const VisualiseInventory = lazy(() => import("./pages/VisualiseInventory"));
 
 const navGroups = [
   {
@@ -48,6 +51,7 @@ const navGroups = [
     links: [
       { to: "/returns", label: "Ecom Orders" },
       { to: "/production-orders", label: "Manufacturer Orders" },
+      { to: "/visualise-order", label: "Visualise Orders" },
     ],
   },
 ];
@@ -162,6 +166,7 @@ function AppShell() {
           <div className="nav-group">
             <span className="nav-group-label">Help</span>
             <button className="sidebar-link guide-btn" onClick={() => setShowOnboarding(true)}>View Guide</button>
+            <NavLink to="/about-features" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>About Features</NavLink>
           </div>
           <div className="nav-group">
             <span className="nav-group-label">Legal</span>
@@ -200,12 +205,14 @@ function AppShell() {
             <Route path="/products" element={<Products />} />
             <Route path="/producers" element={<Producers />} />
             <Route path="/inventory" element={<Inventory />} />
-            <Route path="/visualise-inventory" element={<VisualiseInventory />} />
+            <Route path="/visualise-inventory" element={<Suspense fallback={<div className="loading">Loading charts...</div>}><VisualiseInventory /></Suspense>} />
             <Route path="/alert-manager" element={<AlertManager />} />
             <Route path="/transfers" element={<Transfers />} />
             <Route path="/producer-return" element={<ProducerReturn />} />
             <Route path="/returns" element={<Returns />} />
             <Route path="/production-orders" element={<ProductionOrders />} />
+            <Route path="/visualise-order" element={<VisualiseOrder />} />
+            <Route path="/about-features" element={<AboutFeatures />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />

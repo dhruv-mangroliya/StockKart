@@ -55,7 +55,7 @@ router.post("/", async (req, res) => {
     if (!itemType || !itemId || alertQuantity === undefined) {
       return res.status(400).json({ error: "itemType, itemId, and alertQuantity are required" });
     }
-    const existing = await Alert.findOne({ userId: req.user._id, itemType, itemId });
+    const existing = await Alert.findOne({ userId: req.user._id, itemType, itemId: mongoose.Types.ObjectId(itemId) });
     if (existing) {
       return res.status(400).json({ error: "Alert already exists for this item" });
     }
