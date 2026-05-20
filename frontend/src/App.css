@@ -1825,3 +1825,16 @@ tbody tr {
   padding: 3px 10px;
   border-radius: 20px;
 }
+
+/* Action buttons in tables */
+table .form-row button {
+  width: 80px;
+  padding: 10px 0;
+}
+
+@media (max-width: 768px) {
+  table .form-row button {
+    width: 70px;
+    padding: 8px 0;
+  }
+}

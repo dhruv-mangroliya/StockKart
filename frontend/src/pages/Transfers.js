@@ -50,6 +50,17 @@ export default function Transfers() {
     } catch (err) { setError(err.message); }
   };
 
+  const deleteTransfer = async (transfer) => {
+    if (!window.confirm("Delete this transfer? This will reverse the transaction.")) return;
+    setError("");
+    setSuccess("");
+    try {
+      await api.delete(`/transfers/${transfer.id}`);
+      setTransfers(prev => prev.filter(t => t.id !== transfer.id));
+      setSuccess(`Transfer reversed: ${transfer.quantity} unit(s) transferred from ${transfer.toStore} to ${transfer.fromStore}`);
+    } catch (err) { setError(err.message); }
+  };
+
   return (
     <div className="page">
       <h2>Warehouse Transfer</h2>
@@ -68,17 +79,17 @@ export default function Transfers() {
           </div>
           <div className="form-row">
             <select value={form.fromStoreId} onChange={(e) => setForm({ ...form, fromStoreId: e.target.value, itemId: "", quantity: "" })} required>
-              <option value="">From Store</option>
+              <option value="">From Warehouse</option>
               {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
             <select value={form.toStoreId} onChange={(e) => setForm({ ...form, toStoreId: e.target.value })} required>
-              <option value="">To Store</option>
+              <option value="">To Warehouse</option>
               {stores.filter((s) => s.id !== form.fromStoreId).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           {form.fromStoreId && form.itemId && (
             <p style={{ fontSize: "0.85rem", color: "#555", marginBottom: 8 }}>
-              Available in source store: <strong>{availableQty()}</strong>
+              Available in source warehouse: <strong>{availableQty()}</strong>
             </p>
           )}
           <div className="form-row">
@@ -98,34 +109,40 @@ export default function Transfers() {
       {transfers.length > 0 && (
         <>
           <h3>Transfer History</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {transfers.map((t) => (
-              <div key={t.id} className="form-block" style={{ margin: 0 }}>
-                <table style={{ margin: 0 }}>
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Type</th>
-                      <th>Quantity</th>
-                      <th>From Store</th>
-                      <th>To Store</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{t.itemName}</td>
-                      <td>{t.itemType === "RAW" ? "Raw Material" : "Product"}</td>
-                      <td>{t.quantity}</td>
-                      <td>{t.fromStore}</td>
-                      <td>{t.toStore}</td>
-                      <td>{new Date(t.createdAt).toLocaleDateString()}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>From Warehouse</th>
+                <th>To Warehouse</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transfers.map((t) => (
+                <tr key={t.id}>
+                  <td>{t.itemName}</td>
+                  <td>{t.itemType === "RAW" ? "Raw Material" : "Product"}</td>
+                  <td>{t.quantity}</td>
+                  <td>{t.fromStore}</td>
+                  <td>{t.toStore}</td>
+                  <td>{new Date(t.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => deleteTransfer(t)}
+                      style={{ background: "#dc2626", width: "80px" }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </>
       )}
     </div>

@@ -31,6 +31,9 @@ export default function Inventory() {
   const [editing, setEditing] = useState(null);
   const [editQty, setEditQty] = useState("");
   const [error, setError] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalStatus, setModalStatus] = useState("");
 
   const loadAll = () => {
     api.get("/stores").then(setStores);
@@ -193,14 +196,31 @@ export default function Inventory() {
     ? stores.map((s) => ({ id: s.id, label: s.name }))
     : producers.map((p) => ({ id: p.id, label: p.name }));
 
-  const submit = async (e) => {
+  const submit = (e) => {
     e.preventDefault();
     setError("");
+    const itemLabel = getItemLabel(form.itemType, form.itemId);
+    const locationLabel = getLocationLabel(form.locationType, form.locationId);
+    setModalMessage(`Add ${form.quantity} units of ${itemLabel} to ${locationLabel}?`);
+    setModalStatus("");
+    setShowConfirmModal(true);
+  };
+
+  const confirmSubmit = async () => {
+    setModalStatus("loading");
     try {
       await api.post("/inventory/add", { ...form, quantity: Number(form.quantity) });
-      setForm((f) => ({ ...f, quantity: "" }));
-      loadAll();
-    } catch (err) { setError(err.message); }
+      setModalStatus("success");
+      setModalMessage("Inventory added successfully!");
+      setTimeout(() => {
+        setShowConfirmModal(false);
+        setForm((f) => ({ ...f, quantity: "" }));
+        loadAll();
+      }, 1500);
+    } catch (err) {
+      setModalStatus("error");
+      setModalMessage(err.message || "Failed to add inventory");
+    }
   };
 
   const startEdit = (inv) => { setEditing(inv.id); setEditQty(String(inv.quantity)); setError(""); };
@@ -215,68 +235,74 @@ export default function Inventory() {
     } catch (err) { setError(err.message); }
   };
 
-  const renderInventoryTable = (data) => (
-    <table>
-      <thead>
-        <tr>
-          <th style={{ cursor: "pointer" }} onClick={() => handleSort("itemId")}>Item{getSortIndicator("itemId")}</th>
-          <th style={{ cursor: "pointer" }} onClick={() => handleSort("itemType")}>Item Type{getSortIndicator("itemType")}</th>
-          <th style={{ cursor: "pointer" }} onClick={() => handleSort("locationId")}>Location{getSortIndicator("locationId")}</th>
-          <th style={{ cursor: "pointer" }} onClick={() => handleSort("locationType")}>Warehouse Type{getSortIndicator("locationType")}</th>
-          <th style={{ cursor: "pointer" }} onClick={() => handleSort("quantity")}>Quantity{getSortIndicator("quantity")}</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((inv) => (
-          <tr key={inv.id}>
-            <td>{getItemLabel(inv.itemType, inv.itemId)}</td>
-            <td>{inv.itemType === "RAW" ? "Raw Material" : "Product"}</td>
-            <td>{getLocationLabel(inv.locationType, inv.locationId)}</td>
-            <td>{inv.locationType === "STORE" ? "Warehouse" : "Manufacturer"}</td>
-            <td>
-              {editing === inv.id
-                ? <input type="text" inputMode="numeric" pattern="[0-9.]*" value={editQty} onChange={(e) => setEditQty(e.target.value)} autoFocus style={{ width: 80, padding: "4px 8px" }} />
-                : inv.quantity}
-            </td>
-            <td>
-              {editing === inv.id ? (
-                <div className="form-row">
-                  <button onClick={() => saveEdit(inv.id)}>Save</button>
-                  <button type="button" onClick={cancelEdit}>Cancel</button>
-                </div>
-              ) : (
-                <button type="button" onClick={() => startEdit(inv)}>Edit</button>
-              )}
-            </td>
+  const renderInventoryTable = (data) => {
+    const filteredData = data.filter((inv) => inv.quantity > 0);
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("itemId")}>Item{getSortIndicator("itemId")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("itemType")}>Item Type{getSortIndicator("itemType")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("locationId")}>Location{getSortIndicator("locationId")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("locationType")}>Warehouse Type{getSortIndicator("locationType")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleSort("quantity")}>Quantity{getSortIndicator("quantity")}</th>
+            <th>Action</th>
           </tr>
-        ))}
-        {data.length === 0 && <tr><td colSpan="6" style={{ textAlign: "center" }}>No inventory found</td></tr>}
-      </tbody>
-    </table>
-  );
+        </thead>
+        <tbody>
+          {filteredData.map((inv) => (
+            <tr key={inv.id}>
+              <td>{getItemLabel(inv.itemType, inv.itemId)}</td>
+              <td>{inv.itemType === "RAW" ? "Raw Material" : "Product"}</td>
+              <td>{getLocationLabel(inv.locationType, inv.locationId)}</td>
+              <td>{inv.locationType === "STORE" ? "Warehouse" : "Manufacturer"}</td>
+              <td>
+                {editing === inv.id
+                  ? <input type="text" inputMode="numeric" pattern="[0-9.]*" value={editQty} onChange={(e) => setEditQty(e.target.value)} autoFocus style={{ width: 80, padding: "4px 8px" }} />
+                  : inv.quantity}
+              </td>
+              <td>
+                {editing === inv.id ? (
+                  <div className="form-row">
+                    <button onClick={() => saveEdit(inv.id)}>Save</button>
+                    <button type="button" onClick={cancelEdit}>Cancel</button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => startEdit(inv)} style={{ width: "80px" }}>Edit</button>
+                )}
+              </td>
+            </tr>
+          ))}
+          {filteredData.length === 0 && <tr><td colSpan="6" style={{ textAlign: "center" }}>No inventory found</td></tr>}
+        </tbody>
+      </table>
+    );
+  };
 
-  const renderGlobalStockTable = (data) => (
-    <table>
-      <thead>
-        <tr>
-          <th style={{ cursor: "pointer" }} onClick={() => handleGSort("itemId")}>Item{getGSortIndicator("itemId")}</th>
-          <th style={{ cursor: "pointer" }} onClick={() => handleGSort("itemType")}>Item Type{getGSortIndicator("itemType")}</th>
-          <th style={{ cursor: "pointer" }} onClick={() => handleGSort("totalQuantity")}>Total Quantity{getGSortIndicator("totalQuantity")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((g) => (
-          <tr key={`${g.itemType}:${g.itemId}`}>
-            <td>{getItemLabel(g.itemType, g.itemId)}</td>
-            <td>{g.itemType === "RAW" ? "Raw Material" : "Product"}</td>
-            <td>{g.totalQuantity}</td>
+  const renderGlobalStockTable = (data) => {
+    const filteredData = data.filter((g) => g.totalQuantity > 0);
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th style={{ cursor: "pointer" }} onClick={() => handleGSort("itemId")}>Item{getGSortIndicator("itemId")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleGSort("itemType")}>Item Type{getGSortIndicator("itemType")}</th>
+            <th style={{ cursor: "pointer" }} onClick={() => handleGSort("totalQuantity")}>Total Quantity{getGSortIndicator("totalQuantity")}</th>
           </tr>
-        ))}
-        {data.length === 0 && <tr><td colSpan="3" style={{ textAlign: "center" }}>No stock found</td></tr>}
-      </tbody>
-    </table>
-  );
+        </thead>
+        <tbody>
+          {filteredData.map((g) => (
+            <tr key={`${g.itemType}:${g.itemId}`}>
+              <td>{getItemLabel(g.itemType, g.itemId)}</td>
+              <td>{g.itemType === "RAW" ? "Raw Material" : "Product"}</td>
+              <td>{g.totalQuantity}</td>
+            </tr>
+          ))}
+          {filteredData.length === 0 && <tr><td colSpan="3" style={{ textAlign: "center" }}>No stock found</td></tr>}
+        </tbody>
+      </table>
+    );
+  };
 
   return (
     <>
@@ -313,6 +339,87 @@ export default function Inventory() {
         {error && <p className="error">{error}</p>}
       </div>
 
+      {showConfirmModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "8px",
+            padding: "24px",
+            maxWidth: "400px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+            textAlign: "center"
+          }}>
+            {modalStatus === "loading" && (
+              <>
+                <div style={{ fontSize: "18px", marginBottom: "16px", color: "#3b82f6" }}>Processing...</div>
+                <div style={{ fontSize: "14px", color: "#6b7280" }}>{modalMessage}</div>
+              </>
+            )}
+            {modalStatus === "success" && (
+              <>
+                <div style={{ fontSize: "24px", marginBottom: "12px" }}>✓</div>
+                <div style={{ fontSize: "16px", color: "#059669", fontWeight: "bold", marginBottom: "8px" }}>Success</div>
+                <div style={{ fontSize: "14px", color: "#6b7280" }}>{modalMessage}</div>
+              </>
+            )}
+            {modalStatus === "error" && (
+              <>
+                <div style={{ fontSize: "24px", marginBottom: "12px" }}>✕</div>
+                <div style={{ fontSize: "16px", color: "#dc2626", fontWeight: "bold", marginBottom: "8px" }}>Error</div>
+                <div style={{ fontSize: "14px", color: "#6b7280" }}>{modalMessage}</div>
+              </>
+            )}
+            {!modalStatus && (
+              <>
+                <div style={{ fontSize: "16px", marginBottom: "24px", color: "#1f2937" }}>{modalMessage}</div>
+                <div className="form-row" style={{ gap: "12px", justifyContent: "center" }}>
+                  <button
+                    onClick={confirmSubmit}
+                    style={{
+                      padding: "8px 24px",
+                      backgroundColor: "#2563eb",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontWeight: "bold"
+                    }}
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmModal(false)}
+                    style={{
+                      padding: "8px 24px",
+                      backgroundColor: "#e5e7eb",
+                      color: "#1f2937",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontWeight: "bold"
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px", borderBottom: "2px solid #e5e7eb" }}>
         <button
           onClick={() => {
@@ -324,11 +431,11 @@ export default function Inventory() {
           style={{
             padding: "10px 20px",
             border: "none",
-            background: activeTab === "total" ? "#3b82f6" : "transparent",
+            background: activeTab === "total" ? "#6366f1" : "transparent",
             color: activeTab === "total" ? "white" : "#6b7280",
             cursor: "pointer",
             fontWeight: activeTab === "total" ? "bold" : "normal",
-            borderBottom: activeTab === "total" ? "3px solid #3b82f6" : "none"
+            borderBottom: activeTab === "total" ? "3px solid #6366f1" : "none"
           }}
         >
           Total Inventory Data
@@ -342,11 +449,11 @@ export default function Inventory() {
           style={{
             padding: "10px 20px",
             border: "none",
-            background: activeTab === "name" ? "#3b82f6" : "transparent",
+            background: activeTab === "name" ? "#6366f1" : "transparent",
             color: activeTab === "name" ? "white" : "#6b7280",
             cursor: "pointer",
             fontWeight: activeTab === "name" ? "bold" : "normal",
-            borderBottom: activeTab === "name" ? "3px solid #3b82f6" : "none"
+            borderBottom: activeTab === "name" ? "3px solid #6366f1" : "none"
           }}
         >
           Filter By Name
@@ -359,11 +466,11 @@ export default function Inventory() {
           style={{
             padding: "10px 20px",
             border: "none",
-            background: activeTab === "item" ? "#3b82f6" : "transparent",
+            background: activeTab === "item" ? "#6366f1" : "transparent",
             color: activeTab === "item" ? "white" : "#6b7280",
             cursor: "pointer",
             fontWeight: activeTab === "item" ? "bold" : "normal",
-            borderBottom: activeTab === "item" ? "3px solid #3b82f6" : "none"
+            borderBottom: activeTab === "item" ? "3px solid #6366f1" : "none"
           }}
         >
           Filter by Item

@@ -52,7 +52,7 @@ export default function ProducerReturn() {
     try {
       const returnLog = await api.post("/transfers/producer-return", { producerId, toStoreId, materials: toReturn });
       setReturns(prev => [returnLog, ...prev]);
-      setSuccess("Materials returned to store successfully");
+      setSuccess("Materials returned to warehouse successfully");
       setProducerId("");
       setToStoreId("");
       setMaterials([]);
@@ -60,11 +60,22 @@ export default function ProducerReturn() {
     } catch (err) { setError(err.message); }
   };
 
+  const deleteReturn = async (returnRecord) => {
+    if (!window.confirm("Delete this return? This will reverse the transaction.")) return;
+    setError("");
+    setSuccess("");
+    try {
+      await api.delete(`/transfers/producer-returns/${returnRecord.id}`);
+      setReturns(prev => prev.filter(r => r.id !== returnRecord.id));
+      setSuccess(`Return reversed: Materials transferred back from ${returnRecord.store} to ${returnRecord.producer}`);
+    } catch (err) { setError(err.message); }
+  };
+
   return (
     <div className="page">
       <h2>Manufacturer Return</h2>
       <div className="form-block">
-        <h3>Return Raw Materials from Manufacturer to Store</h3>
+        <h3>Return Raw Materials from Manufacturer to Warehouse</h3>
         <form onSubmit={submit}>
           <div className="form-row">
             <select value={producerId} onChange={(e) => { setProducerId(e.target.value); setError(""); setSuccess(""); }} required>
@@ -72,18 +83,18 @@ export default function ProducerReturn() {
               {producers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <select value={toStoreId} onChange={(e) => setToStoreId(e.target.value)} required>
-              <option value="">Return to Store</option>
+              <option value="">Return to Warehouse</option>
               {stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
 
           {producerId && producerStock.length === 0 && (
-            <p style={{ color: "#888", fontSize: "0.875rem" }}>This producer has no raw materials in inventory.</p>
+            <p style={{ color: "#888", fontSize: "0.875rem" }}>This manufacturer has no raw materials in inventory.</p>
           )}
 
           {producerStock.length > 0 && (
             <>
-              <p style={{ marginBottom: 10 }}><strong>Materials held by producer</strong></p>
+              <p style={{ marginBottom: 10 }}><strong>Materials held by manufacturer</strong></p>
               <table>
                 <thead><tr><th>Material</th><th>Available</th><th>Return Qty</th></tr></thead>
                 <tbody>
@@ -122,34 +133,42 @@ export default function ProducerReturn() {
       {returns.length > 0 && (
         <>
           <h3>Return History</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {returns.map((r) => (
-              <div key={r.id} className="form-block" style={{ margin: 0 }}>
-                <table style={{ margin: 0 }}>
-                  <thead>
-                    <tr>
-                      <th>Material</th>
-                      <th>Quantity</th>
-                      <th>From Manufacturer</th>
-                      <th>To Store</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {r.materials.map((mat, i) => (
-                      <tr key={i}>
-                        <td>{mat.rawMaterialName}</td>
-                        <td>{mat.quantity}</td>
-                        <td>{r.producer}</td>
-                        <td>{r.store}</td>
-                        <td>{new Date(r.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Quantity</th>
+                <th>From Manufacturer</th>
+                <th>To Warehouse</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {returns.map((r) =>
+                r.materials.map((mat, i) => (
+                  <tr key={`${r.id}-${i}`}>
+                    <td>{mat.rawMaterialName}</td>
+                    <td>{mat.quantity}</td>
+                    <td>{r.producer}</td>
+                    <td>{r.store}</td>
+                    <td>{new Date(r.createdAt).toLocaleDateString()}</td>
+                    {i === 0 && (
+                      <td rowSpan={r.materials.length}>
+                        <button
+                          type="button"
+                          onClick={() => deleteReturn(r)}
+                          style={{ background: "#dc2626", width: "80px" }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </>
       )}
     </div>

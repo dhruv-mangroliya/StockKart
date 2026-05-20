@@ -42,6 +42,34 @@ router.delete("/:id", async (req, res) => {
   res.json({ message: "Order cancelled" });
 });
 
+// Delete a completed order (reverse it)
+router.delete("/:id/completed", async (req, res) => {
+  const order = await ProductionOrder.findOne({ _id: req.params.id, userId: req.user._id });
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  if (order.status !== "COMPLETED") return res.status(400).json({ error: "Only completed orders can be deleted" });
+
+  const product = await Product.findById(order.productId);
+  const outputQuantity = order.outputQuantity;
+
+  // Remove products from destination store
+  const storeProductInv = await Inventory.findOne({ userId: req.user._id, itemType: "PRODUCT", itemId: order.productId, locationType: "STORE", locationId: order.destinationStoreId });
+  if (storeProductInv) {
+    storeProductInv.quantity -= outputQuantity;
+    await storeProductInv.save();
+  }
+
+  // Add raw materials back to producer
+  for (const bom of product.billOfMaterials) {
+    const required = bom.quantityRequiredPerUnit * outputQuantity;
+    const prodInv = await findOrCreateEntry(req.user._id, "RAW", bom.rawMaterialId, "PRODUCER", order.producerId);
+    prodInv.quantity += required;
+    await prodInv.save();
+  }
+
+  await ProductionOrder.findByIdAndDelete(req.params.id);
+  res.json({ message: "Completed order deleted and reversed" });
+});
+
 router.post("/:id/complete", async (req, res) => {
   const order = await ProductionOrder.findOne({ _id: req.params.id, userId: req.user._id });
   if (!order) return res.status(404).json({ error: "Order not found" });

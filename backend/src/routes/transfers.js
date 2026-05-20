@@ -71,7 +71,7 @@ router.post("/", async (req, res) => {
   });
 });
 
-// Get all producer returns
+// Get all producer returns (must be before /:id route)
 router.get("/producer-returns", async (req, res) => {
   const returns = await ProducerReturn.find({ userId: req.user._id }).sort({ createdAt: -1 });
   const producers = await Producer.find({ userId: req.user._id });
@@ -138,6 +138,52 @@ router.post("/producer-return", async (req, res) => {
     producer: producer?.name,
     store: store?.name
   });
+});
+
+// Delete a producer return (reverse it) - must be before /:id route
+router.delete("/producer-returns/:id", async (req, res) => {
+  const returnRecord = await ProducerReturn.findOne({ _id: req.params.id, userId: req.user._id });
+  if (!returnRecord) return res.status(404).json({ error: "Return record not found" });
+
+  // Reverse the return: transfer from store back to producer (opposite direction)
+  for (const mat of returnRecord.materials) {
+    // Remove from store
+    const storeInv = await Inventory.findOne({ userId: req.user._id, itemType: "RAW", itemId: mat.rawMaterialId, locationType: "STORE", locationId: returnRecord.storeId });
+    if (storeInv) {
+      storeInv.quantity -= Number(mat.quantity);
+      await storeInv.save();
+    }
+
+    // Add back to producer
+    const prodInv = await findOrCreateEntry(req.user._id, "RAW", mat.rawMaterialId, "PRODUCER", returnRecord.producerId);
+    prodInv.quantity += Number(mat.quantity);
+    await prodInv.save();
+  }
+
+  await ProducerReturn.deleteOne({ _id: req.params.id });
+  res.json({ message: "Return deleted and reversed" });
+});
+
+// Delete a transfer (reverse it) - must be after specific routes
+router.delete("/:id", async (req, res) => {
+  const transfer = await Transfer.findOne({ _id: req.params.id, userId: req.user._id });
+  if (!transfer) return res.status(404).json({ error: "Transfer not found" });
+
+  // Reverse the transfer: transfer from destination back to source (opposite direction)
+  // Remove from destination
+  const dest = await Inventory.findOne({ userId: req.user._id, itemType: transfer.itemType, itemId: transfer.itemId, locationType: "STORE", locationId: transfer.toStoreId });
+  if (dest) {
+    dest.quantity -= Number(transfer.quantity);
+    await dest.save();
+  }
+
+  // Add back to source
+  const source = await findOrCreateEntry(req.user._id, transfer.itemType, transfer.itemId, "STORE", transfer.fromStoreId);
+  source.quantity += Number(transfer.quantity);
+  await source.save();
+
+  await Transfer.deleteOne({ _id: req.params.id });
+  res.json({ message: "Transfer deleted and reversed" });
 });
 
 module.exports = router;
