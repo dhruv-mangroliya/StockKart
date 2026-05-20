@@ -67,12 +67,12 @@ const FEATURES = [
   },
   {
     title: "Alert Manager — Low Stock Alerts",
-    logic: "Set threshold quantities for any item. When total stock (across all locations) drops below the threshold, the item becomes an active alert. Alerts are checked every 30 seconds. You get a browser notification the first time an item crosses its threshold. Alerts help prevent stockouts.",
+    logic: "Set threshold quantities for any item. When total stock (across all locations) drops below the threshold, the item becomes an active alert. Alerts are checked every 3 minutes. You get a browser notification the first time an item crosses its threshold. Alerts help prevent stockouts.",
     details: [
       "Create alerts for raw materials or products",
       "Set threshold quantity",
       "Active alerts appear in header ALERTS button",
-      "Alerts checked every 30 seconds",
+      "Alerts checked every 3 minutes",
       "Browser notification on first threshold breach",
       "Edit or delete alerts anytime",
     ],
@@ -136,7 +136,20 @@ const FEATURES = [
       "Works even when app is in background",
     ],
   },
-  
+  {
+    title: "Visualise Orders — Order Analytics & Trends",
+    logic: "Comprehensive analytics dashboard for ecommerce order tracking. Trends tab shows daily dispatch vs return trends with date range filtering, overall dispatch vs return pie chart, and item-wise breakdown. Item Trends tab lets you select a specific product to view its individual dispatch and return trends over time with a pie chart. Overall Stats tab displays summary metrics, item-wise table with return rates, and key insights about top products and health status.",
+    details: [
+      "Trends tab: Daily line chart, overall pie chart, item-wise pie charts",
+      "Item Trends tab: Select product from dropdown, view trends and dispatch vs return breakdown",
+      "Overall Stats tab: Summary cards, item-wise table, key insights",
+      "Date range filtering (defaults to last 30 days in IST)",
+      "Color-coded charts: Blue for dispatch, Red for return",
+      "Return rate calculation and analysis",
+      "Identify top dispatched products and highest return rates",
+      "Health status based on return rate: Excellent (< 10%), Good (10-15%), Needs attention (> 15%)",
+    ],
+  },
 ];
 
 export default function AboutFeatures() {

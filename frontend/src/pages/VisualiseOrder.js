@@ -459,7 +459,7 @@ export default function VisualiseOrder() {
             <div style={{ background: "rgba(220,225,255,0.45)", borderRadius: "8px", padding: "16px", border: "1px solid rgba(99,102,241,0.2)" }}>
               <strong style={{ color: "#1e1b4b" }}>Overall Health:</strong>
               <span style={{ color: "#6b7280", marginLeft: "8px" }}>
-                {returnRate < 5 ? "Excellent - Low return rate" : returnRate < 10 ? "Good - Moderate return rate" : "Needs attention - High return rate"}
+                {returnRate < 10 ? "Excellent - Low return rate" : returnRate < 15 ? "Good - Moderate return rate" : "Needs attention - High return rate"}
               </span>
             </div>
           </div>
