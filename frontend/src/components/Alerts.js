@@ -37,6 +37,7 @@ export default function Alerts() {
     loadAlerts();
     const interval = setInterval(loadAlerts, 30000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notificationEnabled]);
 
   const handleEnableNotifications = async () => {

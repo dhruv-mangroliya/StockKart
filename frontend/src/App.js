@@ -16,7 +16,6 @@ import Onboarding from "./components/Onboarding";
 import TodoPanel from "./components/TodoPanel";
 import Alerts from "./components/Alerts";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
-import SubscriptionModal from "./components/SubscriptionModal";
 import Subscription from "./pages/Subscription";
 import PrivacyPolicy from "./pages/policies/PrivacyPolicy";
 import TermsOfService from "./pages/policies/TermsOfService";
@@ -56,7 +55,7 @@ const navGroups = [
 const API = (process.env.REACT_APP_BACKEND_URL || "http://localhost:3001").replace(/\/$/, "");
 
 function AppShell() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -130,7 +129,7 @@ function AppShell() {
     </div>
   );
 
-  const needsSubscription = user.trialExpired && !user.subscriptionActive;
+  // const needsSubscription = user.trialExpired && !user.subscriptionActive;
 
   return (
     <div className="app-layout">
@@ -161,10 +160,6 @@ function AppShell() {
             </div>
           ))}
           <div className="nav-group">
-            <span className="nav-group-label">Account</span>
-            <NavLink to="/subscription" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"} onClick={() => setSidebarOpen(false)}>Subscription</NavLink>
-          </div>
-          <div className="nav-group">
             <span className="nav-group-label">Help</span>
             <button className="sidebar-link guide-btn" onClick={() => setShowOnboarding(true)}>View Guide</button>
           </div>
@@ -179,7 +174,7 @@ function AppShell() {
       </aside>
 
       <main className="main-content">
-        {needsSubscription && <SubscriptionModal user={user} onSuccess={refreshUser} />}
+        {/* {needsSubscription && <SubscriptionModal user={user} onSuccess={refreshUser} />} */}
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
         <PWAInstallPrompt />
         <header className="main-header">

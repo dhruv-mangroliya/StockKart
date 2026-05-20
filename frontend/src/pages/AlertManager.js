@@ -3,7 +3,9 @@ import { api } from "../api";
 
 export default function AlertManager() {
   const [alerts, setAlerts] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [stores, setStores] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [producers, setProducers] = useState([]);
   const [rawMaterials, setRawMaterials] = useState([]);
   const [products, setProducts] = useState([]);
