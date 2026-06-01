@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const { Alert, Inventory, RawMaterial, Product } = require("../models");
 const auth = require("../middleware/auth");
 
@@ -32,6 +33,7 @@ router.get("/active/list", async (req, res) => {
           itemName,
           alertQuantity: alert.alertQuantity,
           currentQuantity: totalQty,
+          description: alert.description,
         });
       }
     }
@@ -51,15 +53,15 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { itemType, itemId, alertQuantity } = req.body;
+    const { itemType, itemId, alertQuantity, description } = req.body;
     if (!itemType || !itemId || alertQuantity === undefined) {
       return res.status(400).json({ error: "itemType, itemId, and alertQuantity are required" });
     }
-    const existing = await Alert.findOne({ userId: req.user._id, itemType, itemId: mongoose.Types.ObjectId(itemId) });
+    const existing = await Alert.findOne({ userId: req.user._id, itemType, itemId: new mongoose.Types.ObjectId(itemId) });
     if (existing) {
       return res.status(400).json({ error: "Alert already exists for this item" });
     }
-    res.status(201).json(await Alert.create({ userId: req.user._id, itemType, itemId, alertQuantity }));
+    res.status(201).json(await Alert.create({ userId: req.user._id, itemType, itemId, alertQuantity, description }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -71,5 +71,6 @@ module.exports.Alert = mongoose.model("Alert", new mongoose.Schema({
   itemType: { type: String, enum: ["RAW", "PRODUCT"], required: true },
   itemId: { type: mongoose.Schema.Types.ObjectId, required: true },
   alertQuantity: { type: Number, required: true },
+  description: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
 }));
