@@ -1,30 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { api } from "../api";
 
 export default function RecommendationEngine() {
   const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [runwayDays, setRunwayDays] = useState(7);
   const [holidaySeverity, setHolidaySeverity] = useState("LOW");
 
-  const loadRecommendations = async () => {
-    setLoading(true);
+  const loadRecommendations = useCallback(async () => {
     try {
       const data = await api.post("/recommendations/calculate", {
         runwayDays: parseInt(runwayDays),
         holidaySeverity,
       });
       setRecommendations(data.recommendations || []);
+
+      const criticalRecs = (data.recommendations || []).filter(
+        (rec) => rec.recommendation.includes("HIGH") || rec.recommendation.includes("URGENT")
+      );
+
+      for (const rec of criticalRecs) {
+        try {
+          await api.post("/alerts", {
+            itemType: "PRODUCT",
+            itemId: rec.productId,
+            alertQuantity: rec.todayDemand,
+            description: `Reco. engine suggested ${rec.recommendation.split(" - ")[0]} - ${rec.productName} (Best case: ${rec.canSustainDays.bestCase} days)`,
+          });
+        } catch (err) {
+          console.error(`Failed to create alert for ${rec.productName}:`, err);
+        }
+      }
     } catch (err) {
       console.error("Failed to load recommendations:", err);
       setRecommendations([]);
     }
-    setLoading(false);
-  };
+  }, [runwayDays, holidaySeverity]);
 
   useEffect(() => {
     loadRecommendations();
-  }, [runwayDays, holidaySeverity]);
+  }, [loadRecommendations]);
 
   const getRecommendationColor = (recommendation) => {
     if (recommendation.includes("URGENT")) return "#dc2626";

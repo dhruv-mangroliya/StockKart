@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, XAxis, YAxis, CartesianGrid, LineChart, Line } from "recharts";
 
 const PIE_COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6"];
 
@@ -13,7 +13,6 @@ const getISTDate = (daysOffset = 0) => {
 
 export default function VisualiseOrder() {
   const [batches, setBatches] = useState([]);
-  const [products, setProducts] = useState([]);
   const [tab, setTab] = useState("trends");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [fromDate, setFromDate] = useState(getISTDate(-30));
@@ -21,7 +20,6 @@ export default function VisualiseOrder() {
 
   useEffect(() => {
     api.get("/ecom-batches").then(setBatches);
-    api.get("/products").then(setProducts);
   }, []);
 
   const filterByDateRange = (data) => {
